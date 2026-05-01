@@ -1,0 +1,17 @@
+Key Levels of Software Testing
+
+Unit Testing: The lowest level, where developers test individual methods, functions, or modules of code in isolation. It ensures that the smallest parts of the application work correctly, often using white-box techniques.
+
+Integration Testing: Focuses on verifying the data transfer and interaction between combined units or modules. It identifies defects in how different parts of the application work together.
+
+System Testing: Conducts comprehensive testing of the entire, fully integrated application to verify it meets functional and technical requirements. This stage is often performed in a production-like environment.
+
+Acceptance Testing (UAT): The final level, performed by users or stakeholders to confirm the software meets their needs before it goes into production. Key types include Alpha testing (internal) and Beta testing (external). 
+
+Supporting Testing Types
+
+Functional Testing: Ensures the application behaves according to requirements.
+
+Non-Functional Testing: Evaluates performance, security, usability, and compatibility.
+
+Regression Testing: Ensures that new changes or fixes haven't negatively impacted existing functionality.

@@ -1,0 +1,39 @@
+{
+  "name": "papi's-pictures",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "scripts": {
+    "start": "dotenvx run -- node server.js",
+    "dev": "dotenvx run -- node server.js",
+    "seed": "dotenvx run -- node scripts/seed.js",
+    "backup": "dotenvx run -- node scripts/autoBackup.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bcshort1/Papi-s_Pictures.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/bcshort1/Papi-s_Pictures/issues"
+  },
+  "homepage": "https://github.com/bcshort1/Papi-s_Pictures#readme",
+  "dependencies": {
+    "@dotenvx/dotenvx": "^1.60.1",
+    "bcrypt": "^6.0.0",
+    "busboy": "^1.6.0",
+    "cookie-parser": "^1.4.7",
+    "exifr": "^7.1.3",
+    "express": "^5.2.1",
+    "express-async-handler": "^1.2.0",
+    "fluent-ffmpeg": "^2.1.3",
+    "jsonwebtoken": "^9.0.3",
+    "mongoose": "^9.4.1",
+    "sharp": "^0.34.5",
+    "sortablejs": "^1.15.7"
+  }
+}

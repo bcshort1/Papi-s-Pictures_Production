@@ -1,0 +1,1414 @@
+/* Reset — normalize all elements to use border-box sizing and remove default margins and padding. */
+*,
+*::before,
+*::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Color palette inspired by the Northern Michigan landscape — lakes, sky, sand, sunsets, and pine forests. */
+:root {
+    --lake: #1B4965;
+    --lake-light: #2a5f82;
+    --sky: #5FA8D3;
+    --sky-hover: #4a95c0;
+    --sand: #E8DCC4;
+    --sunset: #D4923A;
+    --sunset-hover: #c07e2d;
+    --pine: #2D4A3E;
+    --birch: #F5F1EB;
+    --dark: #1a1a1a;
+    --white: #ffffff;
+    --gray: #6c757d;
+    --gray-light: #e9ecef;
+    --danger: #dc3545;
+    --danger-hover: #c82333;
+    --success: #28a745;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    font-family: 'Raleway', sans-serif;
+    color: var(--dark);
+    background-color: var(--birch);
+    line-height: 1.6;
+    min-height: 100vh;
+}
+
+h1,
+h2,
+h3 {
+    font-family: 'Libre Baskerville', serif;
+}
+
+a {
+    text-decoration: none;
+    color: inherit;
+}
+
+/* ===========================
+   Login Page
+   =========================== */
+
+/* Full-height centered login page with a gradient background. Uses Flexbox for centering. */
+.login-page {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    background: linear-gradient(135deg, var(--lake) 0%, var(--pine) 100%);
+}
+
+.login-container {
+    width: 100%;
+    max-width: 420px;
+    padding: 1rem;
+}
+
+/* Login card with rounded corners and a drop shadow for depth. */
+.login-card {
+    background: var(--white);
+    border-radius: 12px;
+    padding: 2.5rem 2rem;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+.login-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.login-logo {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    border: 3px solid var(--sunset);
+    margin-bottom: 1rem;
+}
+
+.login-header h1 {
+    font-size: 1.5rem;
+    color: var(--lake);
+    margin-bottom: 0.25rem;
+}
+
+.login-header p {
+    color: var(--gray);
+    font-size: 0.9rem;
+}
+
+/* Shared form styles for both login and modal forms. */
+.form-group {
+    margin-bottom: 1.25rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.4rem;
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--dark);
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+    width: 100%;
+    padding: 0.7rem 0.9rem;
+    border: 2px solid var(--gray-light);
+    border-radius: 8px;
+    font-size: 0.95rem;
+    font-family: 'Raleway', sans-serif;
+    transition: border-color 0.2s;
+    background: var(--white);
+    color: var(--dark);
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: var(--sky);
+}
+
+.form-group textarea {
+    resize: vertical;
+    min-height: 80px;
+}
+
+/* Datetime-local input styling — make the picker obvious and full-width. */
+.form-group input[type="datetime-local"] {
+    cursor: pointer;
+    color-scheme: light;
+}
+
+/* Helper hint text below fields. */
+.field-hint {
+    display: block;
+    margin-top: 0.3rem;
+    font-size: 0.8rem;
+    color: var(--gray);
+    font-style: italic;
+}
+
+/* Checkbox styling — inline layout with label beside checkbox. */
+.form-group.checkbox-group {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.form-group.checkbox-group input[type="checkbox"] {
+    width: auto;
+    accent-color: var(--sunset);
+}
+
+.form-group.checkbox-group label {
+    margin-bottom: 0;
+}
+
+/* Error message banner for login failures. */
+.error-message {
+    background: #f8d7da;
+    color: var(--danger);
+    padding: 0.6rem 0.9rem;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    margin-bottom: 1rem;
+}
+
+/* Login submit button — full width, sunset-colored. */
+.login-btn {
+    width: 100%;
+    padding: 0.8rem;
+    background: var(--sunset);
+    color: var(--white);
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+    font-family: 'Raleway', sans-serif;
+}
+
+.login-btn:hover {
+    background: var(--sunset-hover);
+}
+
+/* ===========================
+   Admin Layout
+   =========================== */
+
+/* Main admin page layout using CSS Grid with three rows: header, tabs, main content. */
+.admin-layout {
+    display: grid;
+    grid-template-rows: auto auto 1fr;
+    grid-template-areas:
+        "header"
+        "tabs"
+        "main";
+    min-height: 100vh;
+}
+
+/* ===========================
+   Admin Header
+   =========================== */
+
+/* Header bar with logo and user controls. Uses Flexbox for horizontal alignment. */
+.admin-header {
+    grid-area: header;
+    background: var(--lake);
+    color: var(--white);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 1.5rem;
+    border-bottom: 3px solid var(--sunset);
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.admin-logo {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    border: 2px solid var(--sunset);
+}
+
+.header-left h1 {
+    font-size: 1.3rem;
+    color: var(--white);
+}
+
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.welcome-text {
+    font-size: 0.9rem;
+    color: var(--sand);
+}
+
+/* Logout button — transparent with a sand-colored border. Inverts colors on hover. */
+.logout-btn {
+    padding: 0.4rem 1rem;
+    background: transparent;
+    color: var(--sand);
+    border: 2px solid var(--sand);
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.85rem;
+    transition: all 0.2s;
+    font-family: 'Raleway', sans-serif;
+}
+
+.logout-btn:hover {
+    background: var(--sand);
+    color: var(--lake);
+}
+
+/* ===========================
+   Navigation Tabs
+   =========================== */
+
+/* Tab bar using Flexbox. Active tab has a sunset-colored bottom border. */
+.admin-tabs {
+    grid-area: tabs;
+    display: flex;
+    background: var(--lake-light);
+    padding: 0 1.5rem;
+    gap: 0.25rem;
+}
+
+.tab-btn {
+    padding: 0.8rem 1.5rem;
+    background: transparent;
+    color: var(--sand);
+    border: none;
+    border-bottom: 3px solid transparent;
+    cursor: pointer;
+    font-size: 0.95rem;
+    font-weight: 600;
+    transition: all 0.2s;
+    font-family: 'Raleway', sans-serif;
+}
+
+.tab-btn:hover {
+    color: var(--white);
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.tab-btn.active {
+    color: var(--white);
+    border-bottom-color: var(--sunset);
+    background: rgba(255, 255, 255, 0.1);
+}
+
+/* ===========================
+   Main Content Area
+   =========================== */
+
+.admin-main {
+    grid-area: main;
+    padding: 1.5rem;
+    max-width: 1400px;
+    width: 100%;
+    margin: 0 auto;
+}
+
+/* Tab content panels — hidden by default, shown when active. */
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+/* Section header with title and add button. Uses Flexbox for spacing. */
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.section-header h2 {
+    color: var(--lake);
+    font-size: 1.5rem;
+}
+
+/* Add new item button — sunset-colored with rounded corners. */
+.add-btn {
+    padding: 0.6rem 1.2rem;
+    background: var(--sunset);
+    color: var(--white);
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: background 0.2s;
+    font-family: 'Raleway', sans-serif;
+}
+
+.add-btn:hover {
+    background: var(--sunset-hover);
+}
+
+/* ===========================
+   Items Grid
+   =========================== */
+
+/* Responsive grid layout for item cards. Uses CSS Grid with auto-fill and minmax for responsiveness. */
+.items-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 1.25rem;
+}
+
+.loading-text {
+    grid-column: 1 / -1;
+    text-align: center;
+    color: var(--gray);
+    padding: 2rem;
+    font-size: 0.95rem;
+}
+
+/* ===========================
+   Database Schema Viewer
+   =========================== */
+
+.schema-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+    gap: 1.5rem;
+}
+
+.schema-card {
+    background: var(--white);
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+}
+
+.schema-card-header {
+    background: var(--lake);
+    color: var(--white);
+    padding: 0.8rem 1.2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.schema-card-header h3 {
+    margin: 0;
+    font-size: 1.1rem;
+    font-family: 'Raleway', sans-serif;
+}
+
+.schema-collection-name {
+    font-size: 0.75rem;
+    background: rgba(255, 255, 255, 0.2);
+    padding: 0.2rem 0.6rem;
+    border-radius: 4px;
+    font-family: monospace;
+}
+
+.schema-card-body {
+    padding: 0;
+}
+
+.schema-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+}
+
+.schema-table th {
+    background: var(--sand-light);
+    padding: 0.5rem 0.8rem;
+    text-align: left;
+    font-weight: 600;
+    color: var(--lake);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 2px solid var(--sand);
+}
+
+.schema-table td {
+    padding: 0.4rem 0.8rem;
+    border-bottom: 1px solid #eee;
+    vertical-align: top;
+}
+
+.schema-table tr:last-child td {
+    border-bottom: none;
+}
+
+.schema-table tr:hover {
+    background: #fafaf5;
+}
+
+.schema-field-name {
+    font-family: monospace;
+    font-weight: 600;
+    color: var(--lake-dark);
+    font-size: 0.82rem;
+}
+
+.schema-field-type {
+    color: var(--sunset);
+    font-family: monospace;
+    font-size: 0.8rem;
+}
+
+.schema-field-note {
+    color: var(--gray);
+    font-size: 0.75rem;
+    font-style: italic;
+}
+
+.schema-nested-toggle {
+    cursor: pointer;
+    user-select: none;
+}
+
+.schema-nested-toggle .toggle-icon {
+    display: inline-block;
+    width: 1em;
+    transition: transform 0.15s;
+    font-style: normal;
+}
+
+.schema-nested-toggle.open .toggle-icon {
+    transform: rotate(90deg);
+}
+
+.schema-nested-row {
+    display: none;
+}
+
+.schema-nested-row.visible {
+    display: table-row;
+}
+
+.schema-nested-row td {
+    padding-left: 2rem;
+    background: #f9f9f5;
+}
+
+.schema-doc-count {
+    font-size: 0.8rem;
+    color: var(--sand);
+    font-weight: normal;
+}
+
+/* ===========================
+   Item Cards
+   =========================== */
+
+/* Individual product/item card. Uses Flexbox for vertical stacking of content. */
+.item-card {
+    background: var(--white);
+    border-radius: 10px;
+    padding: 1.25rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    border: 1px solid var(--gray-light);
+    transition: box-shadow 0.2s;
+}
+
+.item-card:hover {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+}
+
+/* ID badges showing MongoDB _id and legacy product ID. Uses Flexbox for inline wrapping. */
+.card-ids {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-bottom: 0.25rem;
+}
+
+.id-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    background: var(--gray-light);
+    padding: 0.2rem 0.6rem;
+    border-radius: 4px;
+    font-size: 0.72rem;
+    font-family: 'Courier New', monospace;
+    color: var(--gray);
+    word-break: break-all;
+}
+
+.id-badge strong {
+    color: var(--dark);
+    font-family: 'Raleway', sans-serif;
+}
+
+.item-card h3 {
+    color: var(--lake);
+    font-size: 1.1rem;
+    margin-top: 0.25rem;
+}
+
+.card-description {
+    color: var(--dark);
+    font-size: 0.9rem;
+    flex-grow: 1;
+    line-height: 1.5;
+}
+
+/* Card metadata row — uses Flexbox with wrapping for tags, prices, and status indicators. */
+.card-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: center;
+    font-size: 0.8rem;
+    color: var(--gray);
+    margin-top: 0.25rem;
+}
+
+.meta-tag {
+    background: var(--sky);
+    color: var(--white);
+    padding: 0.15rem 0.6rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.meta-price {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--pine);
+}
+
+.meta-status {
+    font-size: 0.75rem;
+    padding: 0.15rem 0.6rem;
+    border-radius: 12px;
+    font-weight: 600;
+}
+
+.meta-status.active {
+    background: #d4edda;
+    color: var(--success);
+}
+
+.meta-status.inactive {
+    background: #f8d7da;
+    color: var(--danger);
+}
+
+.meta-date {
+    font-style: italic;
+    color: var(--gray);
+}
+
+.meta-sort {
+    color: var(--gray);
+    font-size: 0.75rem;
+}
+
+/* Card action buttons row — uses Flexbox for equal-width Edit and Delete buttons. */
+.card-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--gray-light);
+}
+
+/* ===========================
+   Card Reorder Controls
+   =========================== */
+
+/* Top bar on each card with drag handle on the left and move up/down buttons on the right. */
+.card-reorder-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.4rem;
+    padding-bottom: 0.4rem;
+    border-bottom: 1px solid var(--gray-light);
+}
+
+/* Drag handle — hamburger icon (☰). Cursor changes to grab/grabbing. */
+.drag-handle {
+    cursor: grab;
+    font-size: 1.3rem;
+    color: var(--gray);
+    user-select: none;
+    padding: 0.1rem 0.4rem;
+    border-radius: 4px;
+    transition: color 0.2s, background 0.2s;
+}
+
+.drag-handle:hover {
+    color: var(--lake);
+    background: var(--gray-light);
+}
+
+.drag-handle:active {
+    cursor: grabbing;
+}
+
+/* Move up/down button container. */
+.move-buttons {
+    display: flex;
+    gap: 0.25rem;
+}
+
+/* Individual move buttons — small, subtle arrows. */
+.move-btn {
+    background: var(--gray-light);
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.7rem;
+    padding: 0.25rem 0.5rem;
+    color: var(--gray);
+    transition: background 0.2s, color 0.2s;
+    font-family: 'Raleway', sans-serif;
+    line-height: 1;
+}
+
+.move-btn:hover {
+    background: var(--sky);
+    color: var(--white);
+}
+
+/* SortableJS visual feedback classes. */
+.sortable-ghost {
+    opacity: 0.3;
+    background: var(--sand);
+}
+
+.sortable-chosen {
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+}
+
+.sortable-drag {
+    opacity: 0.9;
+}
+
+.edit-btn,
+.delete-btn {
+    flex: 1;
+    padding: 0.45rem 0.75rem;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.85rem;
+    transition: background 0.2s;
+    font-family: 'Raleway', sans-serif;
+}
+
+.edit-btn {
+    background: var(--sky);
+    color: var(--white);
+}
+
+.edit-btn:hover {
+    background: var(--sky-hover);
+}
+
+.delete-btn {
+    background: var(--danger);
+    color: var(--white);
+}
+
+.delete-btn:hover {
+    background: var(--danger-hover);
+}
+
+/* ===========================
+   Modal (Add/Edit Forms)
+   =========================== */
+
+/* Full-screen modal overlay with a semi-transparent dark background. Uses Flexbox for centering the modal. */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+/* Modal container with rounded corners and scrolling support for tall forms. */
+.modal {
+    background: var(--white);
+    border-radius: 12px;
+    width: 90%;
+    max-width: 550px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+/* Modal header with title and close button. Uses Flexbox for spacing. */
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid var(--gray-light);
+}
+
+.modal-header h2 {
+    color: var(--lake);
+    font-size: 1.2rem;
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: var(--gray);
+    line-height: 1;
+    padding: 0.25rem;
+    transition: color 0.2s;
+}
+
+.modal-close:hover {
+    color: var(--dark);
+}
+
+/* Modal body contains the dynamic form fields. Uses Flexbox for vertical spacing. */
+.modal-body {
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+/* Modal footer with cancel and save buttons. Uses Flexbox for right-aligned buttons. */
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    padding: 1rem 1.5rem;
+    border-top: 1px solid var(--gray-light);
+}
+
+.cancel-btn {
+    padding: 0.6rem 1.2rem;
+    background: var(--gray-light);
+    color: var(--dark);
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: background 0.2s;
+    font-family: 'Raleway', sans-serif;
+}
+
+.cancel-btn:hover {
+    background: #d1d5d9;
+}
+
+.save-btn {
+    padding: 0.6rem 1.2rem;
+    background: var(--sunset);
+    color: var(--white);
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: background 0.2s;
+    font-family: 'Raleway', sans-serif;
+}
+
+.save-btn:hover {
+    background: var(--sunset-hover);
+}
+
+/* Back button in modal footer for batch entry navigation. */
+.back-btn {
+    padding: 0.6rem 1.2rem;
+    background: var(--gray-light);
+    color: var(--dark);
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: background 0.2s;
+    font-family: 'Raleway', sans-serif;
+    margin-right: auto;
+}
+
+.back-btn:hover {
+    background: #d1d5d9;
+}
+
+/* Batch progress indicator shown at top of modal during multi-item upload entry. */
+.batch-progress {
+    padding: 0.75rem 0 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.batch-progress-text {
+    display: block;
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: var(--dark);
+    margin-bottom: 0.4rem;
+    font-family: 'Raleway', sans-serif;
+}
+
+.batch-progress-bar-wrap {
+    width: 100%;
+    height: 6px;
+    background: var(--gray-light);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.batch-progress-bar {
+    height: 100%;
+    background: var(--sunset);
+    border-radius: 3px;
+    transition: width 0.3s ease;
+}
+
+/* ===========================
+   Responsive Design
+   =========================== */
+
+@media (max-width: 768px) {
+
+    /* Stack header elements vertically on small screens. */
+    .admin-header {
+        flex-direction: column;
+        gap: 0.5rem;
+        text-align: center;
+    }
+
+    /* Single-column grid on small screens. */
+    .items-grid {
+        grid-template-columns: 1fr;
+    }
+
+    /* Stack section header elements vertically on small screens. */
+    .section-header {
+        flex-direction: column;
+        gap: 0.75rem;
+        align-items: flex-start;
+    }
+
+    /* Allow horizontal scrolling for tabs on small screens. */
+    .admin-tabs {
+        overflow-x: auto;
+    }
+
+    .tab-btn {
+        white-space: nowrap;
+        font-size: 0.85rem;
+        padding: 0.7rem 1rem;
+    }
+
+    /* Full-width modal on small screens. */
+    .modal {
+        width: 95%;
+        max-height: 95vh;
+    }
+}
+
+/* ===========================
+   Media Upload & Tag Picker
+   =========================== */
+
+/* Upload progress area */
+.upload-progress-area {
+    padding: 1rem 1.5rem;
+    background: var(--white);
+    border-radius: 10px;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+}
+
+.upload-progress-entry {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.5rem 0;
+}
+
+.upload-progress-bar-wrap {
+    flex: 1;
+    height: 8px;
+    background: var(--gray-light);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.upload-progress-bar {
+    height: 100%;
+    width: 0;
+    background: var(--sky);
+    border-radius: 4px;
+    transition: width 0.3s ease;
+}
+
+.upload-status {
+    min-width: 140px;
+    font-size: 0.8rem;
+    text-align: right;
+    color: var(--gray);
+}
+
+.upload-status.upload-success {
+    color: var(--success);
+    font-weight: 600;
+}
+
+.upload-status.upload-error {
+    color: var(--danger);
+    font-weight: 600;
+}
+
+/* Upload preview in modal */
+.upload-preview {
+    text-align: center;
+    margin-bottom: 1rem;
+}
+
+.upload-preview-media {
+    max-width: 100%;
+    max-height: 250px;
+    border-radius: 8px;
+    object-fit: contain;
+    background: var(--gray-light);
+}
+
+/* Auto-tags info bar */
+.auto-tags-info {
+    background: #e8f4fd;
+    color: var(--lake);
+    padding: 0.5rem 0.75rem;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    margin-bottom: 1rem;
+    font-weight: 500;
+}
+
+/* Section label for grouped fields */
+.section-label {
+    display: block;
+    font-weight: 600;
+    font-size: 0.9rem;
+    margin-top: 1rem;
+    margin-bottom: 0.25rem;
+    color: var(--lake);
+    border-bottom: 1px solid var(--gray-light);
+    padding-bottom: 0.25rem;
+}
+
+/* Tag picker widget */
+.tag-picker {
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    padding: 0.5rem;
+    background: var(--white);
+}
+
+.tag-pills-area {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    margin-bottom: 0.35rem;
+}
+
+.tag-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    background: var(--sky);
+    color: var(--white);
+    padding: 0.2rem 0.5rem;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.tag-pill-remove {
+    background: none;
+    border: none;
+    color: var(--white);
+    cursor: pointer;
+    font-size: 0.9rem;
+    padding: 0;
+    line-height: 1;
+    opacity: 0.8;
+}
+
+.tag-pill-remove:hover {
+    opacity: 1;
+}
+
+.tag-input-wrap {
+    position: relative;
+}
+
+.tag-input {
+    width: 100%;
+    border: none;
+    outline: none;
+    font-size: 0.85rem;
+    padding: 0.25rem 0;
+    font-family: 'Raleway', sans-serif;
+}
+
+.tag-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: var(--white);
+    border: 1px solid #ccc;
+    border-top: none;
+    border-radius: 0 0 6px 6px;
+    max-height: 180px;
+    overflow-y: auto;
+    z-index: 1000;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.tag-dropdown-item {
+    padding: 0.4rem 0.6rem;
+    font-size: 0.85rem;
+    cursor: pointer;
+}
+
+.tag-dropdown-item:hover {
+    background: var(--gray-light);
+}
+
+.tag-dropdown-create {
+    color: var(--sky);
+    font-weight: 600;
+    font-style: italic;
+}
+
+/* Gallery input */
+.gallery-entries {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    margin-bottom: 0.5rem;
+}
+
+.gallery-entry {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.gallery-name-input {
+    flex: 1;
+    padding: 0.4rem 0.6rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    font-family: 'Raleway', sans-serif;
+}
+
+.gallery-remove-btn {
+    background: var(--danger);
+    color: var(--white);
+    border: none;
+    border-radius: 4px;
+    width: 28px;
+    height: 28px;
+    cursor: pointer;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.gallery-remove-btn:hover {
+    background: var(--danger-hover);
+}
+
+.gallery-add-btn {
+    background: none;
+    border: 1px dashed var(--sky);
+    color: var(--sky);
+    padding: 0.35rem 0.75rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    font-weight: 600;
+    align-self: flex-start;
+}
+
+.gallery-add-btn:hover {
+    background: #e8f4fd;
+}
+
+/* Media card thumbnail */
+.media-card-thumb-wrap {
+    width: 100%;
+    max-height: 180px;
+    overflow: hidden;
+    border-radius: 6px;
+    margin-bottom: 0.5rem;
+    background: var(--gray-light);
+}
+
+.media-card-thumb {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+    display: block;
+}
+
+/* Media type badge */
+.media-type-badge {
+    text-transform: uppercase;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+
+.photo-badge {
+    background: var(--sky) !important;
+    color: var(--white) !important;
+}
+
+.video-badge {
+    background: var(--sunset) !important;
+    color: var(--white) !important;
+}
+
+/* Media card warning for missing fields */
+.media-card-warning {
+    background: #fff3cd;
+    color: #856404;
+    padding: 0.3rem 0.6rem;
+    border-radius: 4px;
+    font-size: 0.78rem;
+    font-weight: 500;
+    margin-bottom: 0.4rem;
+}
+
+/* Gallery and tag badges on media cards */
+.media-card-galleries,
+.media-card-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+    margin-top: 0.3rem;
+    margin-bottom: 0.3rem;
+}
+
+.gallery-badge {
+    background: var(--pine);
+    color: var(--white);
+    padding: 0.15rem 0.5rem;
+    border-radius: 10px;
+    font-size: 0.72rem;
+    font-weight: 500;
+}
+
+.tag-badge {
+    background: var(--gray-light);
+    color: var(--dark);
+    padding: 0.15rem 0.5rem;
+    border-radius: 10px;
+    font-size: 0.72rem;
+}
+
+/* ===========================
+   Query Shell
+   =========================== */
+
+.query-shell {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.query-controls {
+    background: var(--white);
+    border: 1px solid var(--gray-light);
+    border-radius: 8px;
+    padding: 1rem 1.2rem;
+}
+
+.query-control-row {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-end;
+    flex-wrap: wrap;
+}
+
+.query-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+}
+
+.query-field label {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--gray);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.query-field select,
+.query-field input[type="number"] {
+    padding: 0.45rem 0.6rem;
+    border: 1px solid var(--gray-light);
+    border-radius: 5px;
+    font-family: 'Raleway', sans-serif;
+    font-size: 0.9rem;
+    background: var(--birch);
+    color: var(--dark);
+    min-width: 160px;
+}
+
+.query-field input[type="number"] {
+    min-width: 80px;
+    max-width: 100px;
+}
+
+.query-editor-area {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.query-input-group {
+    background: var(--white);
+    border: 1px solid var(--gray-light);
+    border-radius: 8px;
+    padding: 0.8rem 1rem;
+}
+
+.query-input-group label {
+    display: block;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--lake);
+    margin-bottom: 0.4rem;
+}
+
+.query-hint {
+    font-weight: 400;
+    color: var(--gray);
+    font-size: 0.75rem;
+}
+
+.query-textarea {
+    width: 100%;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 0.88rem;
+    padding: 0.6rem 0.8rem;
+    border: 1px solid var(--gray-light);
+    border-radius: 5px;
+    background: #1e1e2e;
+    color: #cdd6f4;
+    resize: vertical;
+    line-height: 1.5;
+    tab-size: 2;
+}
+
+.query-textarea:focus {
+    outline: none;
+    border-color: var(--sky);
+    box-shadow: 0 0 0 2px rgba(95, 168, 211, 0.25);
+}
+
+.query-textarea::placeholder {
+    color: #585b70;
+}
+
+.query-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.query-status {
+    font-size: 0.85rem;
+    color: var(--gray);
+    font-style: italic;
+}
+
+.query-status.error {
+    color: var(--danger);
+    font-style: normal;
+    font-weight: 500;
+}
+
+.query-output {
+    background: var(--white);
+    border: 1px solid var(--gray-light);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.query-output-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.6rem 1rem;
+    background: var(--lake);
+    color: var(--white);
+    font-size: 0.85rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+.query-result-count {
+    font-weight: 400;
+    opacity: 0.85;
+}
+
+.query-results {
+    padding: 1rem;
+    margin: 0;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 0.84rem;
+    background: #1e1e2e;
+    color: #cdd6f4;
+    line-height: 1.55;
+    max-height: 500px;
+    overflow: auto;
+    white-space: pre-wrap;
+    word-break: break-word;
+}

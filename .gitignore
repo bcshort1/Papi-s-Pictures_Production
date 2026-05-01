@@ -1,0 +1,12 @@
+node_modules
+.env
+.env.keys
+media
+backup
+printful_API_documentation
+stripe_API_documentation
+stripe_JS_documentation
+final_project_requirements
+professor_readme.md
+Application_Features_and_Design_1.xml
+Papis_Pictures_Codebase_1.xml

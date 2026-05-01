@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Papi's Pictures</title>
+    <link rel="shortcut icon" href="/assets/logos_and_thumbnails/logo-137x139.png" type="image/x-icon">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&family=Raleway:wght@300;400;500;600;700&display=swap">
+    <link rel="stylesheet" href="/index.css">
+</head>
+
+<body>
+    <div class="page-grid">
+
+        <!-- Site header with navigation. -->
+        <header class="site-header">
+            <nav class="nav-container">
+                <a href="#welcome" class="logo">
+                    <img src="/assets/logos_and_thumbnails/logo-137x139.png" alt="Papi's Pictures Logo">
+                </a>
+                <div class="hamburger" id="hamburger" role="button" tabindex="0" aria-label="Toggle menu">
+                    <span></span><span></span><span></span>
+                </div>
+                <ul class="nav-links" id="navLinks">
+                    <li><a href="#welcome">Home</a></li>
+                    <li><a href="#gallery">Recent</a></li>
+                    <li><a href="#featuredGallery">Featured</a></li>
+                    <li><a href="#whatsnew">What's New</a></li>
+                    <li><a href="#about">About</a></li>
+                    <li><a href="#services">Services &amp; Licensing</a></li>
+                    <li><a href="/login">Sign In</a></li>
+                    <li><a href="/admin" class="admin-link">Admin</a></li>
+                </ul>
+            </nav>
+        </header>
+
+        <main class="site-main">
+
+            <!-- Welcome section with background video and hero message. -->
+            <section class="welcome" id="welcome">
+                <div class="welcome-bg">
+                    <video width="1920" height="1080" autoplay muted loop playsinline preload="auto"
+                        poster="/assets/welcome_section_video/PointBetsieDawn_poster.jpg" aria-hidden="true">
+                        <source src="/assets/welcome_section_video/PointBetsieDawn_hero.mp4" type="video/mp4">
+                    </video>
+                </div>
+                <div class="welcome-overlay"></div>
+                <div class="welcome-content">
+                    <h1>Welcome to Papi's Pictures</h1>
+                    <p>Capturing the beauty of Northern Michigan from the sky and shore. From the sandy dunes of
+                        Sleeping Bear to the rugged coastline of Point Betsie, Papi's Pictures brings you stunning
+                        aerial and landscape photography of the Great Lakes region. They say the best coast is a debate.
+                        We say it's the fresh coast.
+                        But the lens doesn't stop at the shoreline. I've been lucky enough to travel the world alongside
+                        my wife of 33 years, and those adventures have taken us and the camera far beyond Michigan.
+                        You'll find those moments here too: distant landscapes, foreign shores, and all the beauty that
+                        exists between.
+                        Whether you're looking to license an image for your home, your business, or your next creative
+                        project, we've got you covered.</p>
+                    <a href="#gallery" class="welcome-cta">Explore the Gallery</a>
+                </div>
+            </section>
+
+            <!-- Recent Captures section with pagination. -->
+            <section class="gallery-section" id="gallery">
+                <h2>Recent Captures</h2>
+                <div class="gallery-grid" id="galleryGrid">
+                    <p class="loading" style="grid-column:1/-1;">Loading gallery...</p>
+                </div>
+                <div class="pagination" id="recentPagination">
+                    <button class="pagination-btn" id="recentPrev" aria-label="Previous page">&#10094; Previous</button>
+                    <span class="pagination-info" id="recentPageInfo"></span>
+                    <button class="pagination-btn" id="recentNext" aria-label="Next page">Next &#10095;</button>
+                </div>
+            </section>
+
+            <!-- Featured Media section with pagination. -->
+            <section class="gallery-section featured-gallery-section" id="featuredGallery">
+                <h2>Featured Media</h2>
+                <div class="gallery-grid" id="featuredGrid">
+                    <p class="loading" style="grid-column:1/-1;">Loading featured gallery...</p>
+                </div>
+                <div class="pagination" id="featuredPagination">
+                    <button class="pagination-btn" id="featuredPrev" aria-label="Previous page">&#10094;
+                        Previous</button>
+                    <span class="pagination-info" id="featuredPageInfo"></span>
+                    <button class="pagination-btn" id="featuredNext" aria-label="Next page">Next &#10095;</button>
+                </div>
+            </section>
+
+            <!-- What's New section. -->
+            <section class="whatsnew-section" id="whatsnew">
+                <h2>What's New</h2>
+                <div class="whatsnew-grid" id="whatsNewGrid">
+                    <div class="loading">Loading updates...</div>
+                </div>
+            </section>
+
+            <!-- About section. -->
+            <section class="about-section" id="about">
+                <div class="about-content">
+                    <h2>About Papi's Pictures</h2>
+                    <p>Papi's Pictures is a Northern Michigan photography project capturing the natural beauty of the
+                        Great Lakes region through aerial drone and landscape photography. From the iconic Point Betsie
+                        Lighthouse to the hidden marshes of Arcadia, every image tells a story of Michigan's
+                        breathtaking coastline, dense pine forests, and golden sunsets over Lake Michigan.</p>
+                    <p>Our mission is simple: share the beauty of Northern Michigan with the world. Whether you're a
+                        local who wants a piece of home on your wall, a business looking for stunning regional imagery,
+                        or a creative professional seeking unique content, Papi's Pictures has something for you. All
+                        images are available for personal and commercial licensing.</p>
+                    <p>Have a question or want to book a custom photo shoot? Get in touch at
+                        <strong class="about-email">contact@papispictures.com</strong>
+                    </p>
+                </div>
+            </section>
+
+            <!-- Services & Licensing section. -->
+            <section class="services-section" id="services">
+                <h2>Services &amp; Licensing</h2>
+                <div class="services-grid" id="servicesGrid">
+                    <div class="loading">Loading services...</div>
+                </div>
+            </section>
+
+        </main>
+
+        <!-- Footer. -->
+        <footer class="site-footer">
+            <div class="footer-content">
+                <p>&copy; Copyright 2026 Papi's Pictures - All Rights Reserved</p>
+                <ul class="footer-links">
+                    <li><a
+                            href="https://www.instagram.com/papis_pictures?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==">Instagram</a>
+                    </li>
+                    <li><a href="https://www.facebook.com/profile.php?id=61586298303041">Facebook</a></li>
+                </ul>
+            </div>
+        </footer>
+
+    </div>
+    <script src="/index.js" defer></script>
+</body>
+
+</html>
