@@ -29,9 +29,10 @@
             </div>
         </header>
 
-        <!-- Navigation tabs to switch between Media, What's New, and Services sections. -->
+        <!-- Navigation tabs to switch between Media, Galleries, What's New, and Services sections. -->
         <nav class="admin-tabs">
             <button class="tab-btn active" data-tab="media">Media</button>
+            <button class="tab-btn" data-tab="galleries">Galleries</button>
             <button class="tab-btn" data-tab="whats-new">What's New</button>
             <button class="tab-btn" data-tab="services">Services &amp; Licensing</button>
             <button class="tab-btn" data-tab="schema">Database Schema</button>
@@ -51,6 +52,50 @@
                 <div id="uploadProgressArea" class="upload-progress-area" style="display:none;"></div>
                 <div class="items-grid" id="mediaGrid">
                     <p class="loading-text">Loading media...</p>
+                </div>
+            </section>
+
+            <!-- Galleries management section. Two views: the list of galleries, and the manage-media
+                 view shown after clicking "Manage Media" on a gallery card. JS toggles the .active class
+                 on the inner .gallery-view-list / .gallery-view-manage panels. -->
+            <section id="galleries-section" class="tab-content">
+                <!-- View 1: gallery list. -->
+                <div class="gallery-view gallery-view-list active" id="galleryViewList">
+                    <div class="section-header">
+                        <h2>Galleries</h2>
+                        <button class="add-btn" id="addGalleryBtn">+ Add Gallery</button>
+                    </div>
+                    <div class="items-grid" id="galleriesGrid">
+                        <p class="loading-text">Loading galleries...</p>
+                    </div>
+                </div>
+
+                <!-- View 2: manage media inside a single gallery. -->
+                <div class="gallery-view gallery-view-manage" id="galleryViewManage">
+                    <div class="section-header gallery-manage-header">
+                        <button type="button" class="cancel-btn" id="galleryManageBackBtn">&#10094; Back to galleries</button>
+                        <h2 id="galleryManageTitle">Manage media</h2>
+                        <span id="galleryManageMeta" class="gallery-manage-meta"></span>
+                    </div>
+                    <div class="gallery-manage-grid">
+                        <!-- Left pane: media library, filterable. Each row has + button to add. -->
+                        <div class="gallery-manage-pane">
+                            <h3>Add media</h3>
+                            <input type="search" class="gallery-manage-search" id="galleryManageSearch"
+                                placeholder="Filter by title or tag...">
+                            <div class="gallery-manage-list" id="galleryManageAvailableList">
+                                <p class="loading-text">Loading media...</p>
+                            </div>
+                        </div>
+                        <!-- Right pane: members of this gallery, drag-reorder + remove buttons. -->
+                        <div class="gallery-manage-pane">
+                            <h3>Members</h3>
+                            <p class="gallery-manage-hint">Drag to reorder. Click &#10005; to remove.</p>
+                            <div class="gallery-manage-list" id="galleryMembersList">
+                                <p class="loading-text">No media yet.</p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </section>
 
@@ -100,6 +145,7 @@
                                     <option value="media">media</option>
                                     <option value="whats_new">whats_new</option>
                                     <option value="licensing_and_services">licensing_and_services</option>
+                                    <option value="galleries">galleries</option>
                                     <option value="users">users</option>
                                 </select>
                             </div>

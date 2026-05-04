@@ -1,0 +1,254 @@
+/* Styles specific to the public /galleries page. Builds on the design tokens and reusable
+ * patterns from /index.css (which is loaded alongside this file). */
+
+/* Hero strip — mirrors the .about-section dark surface treatment so the page header
+ * sits visually below the navigation without competing with the gallery cards beneath. */
+.galleries-hero {
+    background-color: var(--lake);
+    color: var(--birch);
+    padding: 3rem 2rem 2.5rem;
+    text-align: center;
+}
+
+.galleries-hero-content {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.galleries-hero h1 {
+    font-size: 2.4rem;
+    color: var(--sand);
+    margin-bottom: 0.75rem;
+}
+
+.galleries-hero p {
+    font-size: 1rem;
+    font-weight: 300;
+    line-height: 1.7;
+}
+
+/* Gallery picker — light section with a multi-column card grid (mirrors .services-grid
+ * patterns from index.css for visual continuity). */
+.gallery-list-section {
+    padding: 3rem 2rem;
+    background-color: var(--birch);
+}
+
+.gallery-list-section h2 {
+    font-size: 2rem;
+    color: var(--lake);
+    margin-bottom: 2rem;
+    text-align: center;
+}
+
+.gallery-list-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.25rem;
+    max-width: 1200px;
+    margin: 0 auto;
+    width: 100%;
+}
+
+/* Gallery card — clickable tile with cover image, title, description, and item count. */
+.gallery-list-card {
+    background: var(--white);
+    border: 1px solid rgba(27, 73, 101, 0.12);
+    border-radius: 6px;
+    overflow: hidden;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+}
+
+.gallery-list-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 18px rgba(27, 73, 101, 0.18);
+}
+
+.gallery-list-card:focus-visible {
+    outline: 3px solid var(--sunset);
+    outline-offset: 2px;
+}
+
+.gallery-list-cover-wrap {
+    width: 100%;
+    aspect-ratio: 3 / 2;
+    overflow: hidden;
+    background: var(--gray-light, #e9ecef);
+}
+
+.gallery-list-cover {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.4s ease;
+}
+
+.gallery-list-card:hover .gallery-list-cover {
+    transform: scale(1.04);
+}
+
+.gallery-list-cover-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, var(--lake) 0%, var(--pine) 100%);
+    color: var(--sand);
+    font-family: 'Libre Baskerville', serif;
+    font-size: 1.4rem;
+    text-align: center;
+    padding: 1rem;
+}
+
+.gallery-list-meta {
+    padding: 1rem 1.1rem 1.2rem;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.gallery-list-meta h3 {
+    font-size: 1.15rem;
+    color: var(--lake);
+    font-family: 'Libre Baskerville', serif;
+}
+
+.gallery-list-meta p {
+    font-size: 0.85rem;
+    font-weight: 300;
+    color: var(--dark);
+    flex: 1;
+    /* Clamp to three lines so cards stay even-height. */
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.gallery-list-count {
+    display: inline-block;
+    align-self: flex-start;
+    background: var(--sunset);
+    color: var(--white);
+    font-size: 0.72rem;
+    font-weight: 600;
+    padding: 0.2rem 0.55rem;
+    border-radius: 10px;
+    margin-top: 0.3rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04rem;
+}
+
+/* Detail section — selected gallery view. Reuses .gallery-grid + .gallery-row from index.css. */
+.gallery-detail-section {
+    padding: 2.5rem 2rem 3rem;
+    background-color: var(--birch);
+}
+
+.gallery-back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: transparent;
+    color: var(--lake);
+    border: 2px solid var(--lake);
+    padding: 0.4rem 1rem;
+    border-radius: 6px;
+    font-family: 'Raleway', sans-serif;
+    font-weight: 600;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: background-color 0.2s, color 0.2s;
+    margin-bottom: 1.5rem;
+}
+
+.gallery-back-btn:hover {
+    background: var(--lake);
+    color: var(--birch);
+}
+
+.gallery-detail-header {
+    text-align: center;
+    max-width: 800px;
+    margin: 0 auto 1.5rem;
+}
+
+.gallery-detail-header h2 {
+    font-size: 2rem;
+    color: var(--lake);
+    margin-bottom: 0.5rem;
+}
+
+.gallery-detail-header p {
+    font-size: 1rem;
+    font-weight: 300;
+    color: var(--dark);
+    margin-bottom: 0.75rem;
+}
+
+.gallery-detail-meta {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--sunset);
+    text-transform: uppercase;
+    letter-spacing: 0.05rem;
+}
+
+/* Empty / error states inside the detail grid. */
+.gallery-detail-section .gallery-grid .empty-state {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 2rem;
+    color: var(--gray, #6c757d);
+}
+
+/* Tablet — collapse to two columns. */
+@media (max-width: 992px) {
+    .galleries-hero {
+        padding: 2.5rem 1.5rem 2rem;
+    }
+    .galleries-hero h1 {
+        font-size: 2rem;
+    }
+    .gallery-list-section,
+    .gallery-detail-section {
+        padding: 2.5rem 1.5rem;
+    }
+    .gallery-list-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+/* Mobile — stack to a single column and tighten spacing. */
+@media (max-width: 576px) {
+    .galleries-hero {
+        padding: 2rem 1rem 1.5rem;
+    }
+    .galleries-hero h1 {
+        font-size: 1.6rem;
+    }
+    .galleries-hero p {
+        font-size: 0.85rem;
+    }
+    .gallery-list-section,
+    .gallery-detail-section {
+        padding: 2rem 1rem;
+    }
+    .gallery-list-section h2,
+    .gallery-detail-header h2 {
+        font-size: 1.6rem;
+    }
+    .gallery-list-grid {
+        grid-template-columns: 1fr;
+    }
+    .gallery-detail-header p {
+        font-size: 0.9rem;
+    }
+}

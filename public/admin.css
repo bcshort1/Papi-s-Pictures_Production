@@ -1412,3 +1412,253 @@ a {
     white-space: pre-wrap;
     word-break: break-word;
 }
+
+/* ===========================
+   Galleries Tab
+   =========================== */
+
+/* The Galleries section has two views inside the same tab content panel:
+ *   - .gallery-view-list   shows the grid of gallery cards (default)
+ *   - .gallery-view-manage shows the Add Media / Members two-pane editor
+ * Only one is visible at a time; JS toggles the .active class. */
+.gallery-view {
+    display: none;
+}
+
+.gallery-view.active {
+    display: block;
+}
+
+/* Manage-Media button — sits next to Edit/Delete on the gallery card. Picked the sky color
+ * so it reads as an action different from the destructive Delete and the neutral Edit. */
+.manage-btn {
+    padding: 0.5rem 1rem;
+    background: var(--sky);
+    color: var(--white);
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.85rem;
+    font-family: 'Raleway', sans-serif;
+    transition: background 0.2s;
+}
+
+.manage-btn:hover {
+    background: var(--sky-hover);
+}
+
+/* Manage view header — back button + title + meta line up horizontally on desktop. */
+.gallery-manage-header {
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    align-items: center;
+}
+
+.gallery-manage-header h2 {
+    flex: 1;
+    min-width: 200px;
+}
+
+.gallery-manage-meta {
+    color: var(--gray);
+    font-size: 0.85rem;
+    font-family: 'Courier New', Courier, monospace;
+}
+
+/* Two-pane layout for the manage-media view (Add | Members). */
+.gallery-manage-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+}
+
+.gallery-manage-pane {
+    background: var(--white);
+    border-radius: 10px;
+    padding: 1rem;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+    display: flex;
+    flex-direction: column;
+}
+
+.gallery-manage-pane h3 {
+    color: var(--lake);
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+}
+
+.gallery-manage-hint {
+    color: var(--gray);
+    font-size: 0.78rem;
+    margin-bottom: 0.5rem;
+}
+
+.gallery-manage-search {
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-family: 'Raleway', sans-serif;
+    font-size: 0.9rem;
+    margin-bottom: 0.6rem;
+}
+
+.gallery-manage-search:focus {
+    outline: none;
+    border-color: var(--sky);
+}
+
+/* Scrollable list of media rows inside each pane. Cap height so the two panes stay aligned
+ * and the page doesn't grow without bound on a large library. */
+.gallery-manage-list {
+    overflow-y: auto;
+    max-height: 70vh;
+    border: 1px solid var(--gray-light);
+    border-radius: 6px;
+    padding: 0.4rem;
+    background: var(--birch);
+}
+
+/* A single member/available row inside one of the panes. */
+.gallery-member-row {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.45rem 0.5rem;
+    background: var(--white);
+    border-radius: 6px;
+    margin-bottom: 0.4rem;
+    border: 1px solid transparent;
+    transition: border-color 0.15s, background 0.15s;
+}
+
+.gallery-member-row:hover {
+    border-color: var(--gray-light);
+}
+
+.gallery-member-row-member {
+    cursor: grab;
+}
+
+.gallery-member-row-member:active {
+    cursor: grabbing;
+}
+
+.gallery-member-handle {
+    color: var(--gray);
+    font-size: 1rem;
+    user-select: none;
+    padding: 0 0.25rem;
+}
+
+.gallery-member-thumb {
+    width: 56px;
+    height: 56px;
+    flex-shrink: 0;
+    background: var(--gray-light);
+    border-radius: 4px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--gray);
+    font-size: 1.4rem;
+}
+
+.gallery-member-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.gallery-member-meta {
+    flex: 1;
+    min-width: 0;
+    /* Prevent text overflow from blowing out the row width. */
+    overflow: hidden;
+}
+
+.gallery-member-meta strong {
+    display: block;
+    font-size: 0.9rem;
+    color: var(--dark);
+    /* Ellipsize long titles instead of letting them wrap onto multiple lines. */
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.gallery-member-meta small {
+    display: block;
+    font-size: 0.72rem;
+    color: var(--gray);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.gallery-member-actions {
+    flex-shrink: 0;
+}
+
+/* Inline +Add button for the available pane. */
+.add-btn-inline {
+    background: var(--sky);
+    color: var(--white);
+    border: none;
+    border-radius: 4px;
+    padding: 0.3rem 0.6rem;
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.add-btn-inline:hover {
+    background: var(--sky-hover);
+}
+
+/* Inline x Remove button for the members pane. */
+.remove-btn-inline {
+    background: var(--danger);
+    color: var(--white);
+    border: none;
+    border-radius: 4px;
+    width: 28px;
+    height: 28px;
+    cursor: pointer;
+    font-size: 1.1rem;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s;
+}
+
+.remove-btn-inline:hover {
+    background: var(--danger-hover);
+}
+
+/* Distinct visual identity for the gallery chip picker so users can tell tag pills and
+ * gallery pills apart at a glance. The base .tag-pill defines the layout. */
+.gallery-pill {
+    background: var(--lake) !important;
+}
+
+.gallery-dropdown {
+    /* Galleries can have longer names than tags, so give the dropdown a tiny bit more breathing room. */
+    max-height: 220px;
+}
+
+/* Tablet — stack panes when the screen narrows. */
+@media (max-width: 992px) {
+    .gallery-manage-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .gallery-manage-list {
+        max-height: 50vh;
+    }
+}
+

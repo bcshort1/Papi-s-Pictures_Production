@@ -24,6 +24,8 @@ const mediaRoutes = require('./backend/routes/mediaRoutes');
 const servicesRoutes = require('./backend/routes/servicesRoutes');
 //What's New CRUD routes.
 const whatsNewRoutes = require('./backend/routes/whatsNewRoutes');
+//Galleries CRUD + membership routes.
+const galleriesRoutes = require('./backend/routes/galleriesRoutes');
 
 //Listen port, defaulting to 3000 when not set in the environment.
 const PORT = process.env.PORT || 3000;
@@ -58,6 +60,12 @@ app.use('/media', express.static(path.join(__dirname, 'media', 'media_display'))
 app.get('/vendor/Sortable.min.js', function (req, res) {
     //Stream the library straight off disk.
     res.sendFile(path.join(__dirname, 'node_modules', 'sortablejs', 'Sortable.min.js'));
+});
+
+//Galleries page. Plain static serve — the cleaner /galleries URL is preferred over
+///galleries.html, which would also work via the public static mount but exposes the extension.
+app.get('/galleries', function (req, res) {
+    res.sendFile(path.join(__dirname, 'public', 'galleries.html'));
 });
 
 //Login page. If the request already has a valid JWT, bounce admins to /admin and
@@ -149,6 +157,8 @@ app.use('/api/media', mediaRoutes);
 app.use('/api/services', servicesRoutes);
 //What's New CRUD endpoints.
 app.use('/api/whats-new', whatsNewRoutes);
+//Galleries endpoints (public list + per-gallery media; admin CRUD/membership all gated by auth inside the router).
+app.use('/api/galleries', galleriesRoutes);
 
 //GET /api/schema — Return database schema definitions and document counts. Requires authentication.
 const requireAuth = require('./backend/middleware/requireAuth');
@@ -158,6 +168,8 @@ const Media = require('./backend/models/Media');
 const WhatsNew = require('./backend/models/WhatsNew');
 //Services / licensing model.
 const LicensingAndService = require('./backend/models/LicensingAndService');
+//Gallery model.
+const Gallery = require('./backend/models/Gallery');
 //User model.
 const User = require('./backend/models/User');
 
@@ -256,7 +268,7 @@ app.get('/api/schema', requireAuth, async function (req, res) {
             return topLevel;
         }
 
-        //Get document counts in parallel for the four tracked collections.
+        //Get document counts in parallel for the five tracked collections.
         var counts = await Promise.all([
             //Media count.
             Media.countDocuments(),
@@ -264,6 +276,8 @@ app.get('/api/schema', requireAuth, async function (req, res) {
             WhatsNew.countDocuments(),
             //Services / licensing count.
             LicensingAndService.countDocuments(),
+            //Galleries count.
+            Gallery.countDocuments(),
             //User count.
             User.countDocuments()
         ]);
@@ -273,7 +287,8 @@ app.get('/api/schema', requireAuth, async function (req, res) {
             { name: 'Media', collection: 'media', docCount: counts[0], fields: extractFields(Media.schema.paths) },
             { name: 'WhatsNew', collection: 'whats_new', docCount: counts[1], fields: extractFields(WhatsNew.schema.paths) },
             { name: 'LicensingAndService', collection: 'licensing_and_services', docCount: counts[2], fields: extractFields(LicensingAndService.schema.paths) },
-            { name: 'User', collection: 'users', docCount: counts[3], fields: extractFields(User.schema.paths) }
+            { name: 'Gallery', collection: 'galleries', docCount: counts[3], fields: extractFields(Gallery.schema.paths) },
+            { name: 'User', collection: 'users', docCount: counts[4], fields: extractFields(User.schema.paths) }
         ];
 
         //Return the descriptor list as JSON.
@@ -300,6 +315,7 @@ app.post('/api/query', requireAuth, async function (req, res) {
             media: Media,
             whats_new: WhatsNew,
             licensing_and_services: LicensingAndService,
+            galleries: Gallery,
             users: User
         };
 

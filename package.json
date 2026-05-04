@@ -8,6 +8,7 @@
     "dev": "dotenvx run -- node server.js",
     "seed": "dotenvx run -- node scripts/seed.js",
     "backup": "dotenvx run -- node scripts/autoBackup.js",
+    "migrate-galleries": "dotenvx run -- node scripts/migrateGalleries.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {

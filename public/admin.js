@@ -182,6 +182,13 @@ for (const button of tabButtons) {
         if (tab === 'schema') {
             loadSchema();
         }
+        //Lazily load the galleries data the first time the galleries tab is opened.
+        //Always reset to the list view so reopening the tab doesn't strand the user
+        //inside a previously-opened manage-media view.
+        if (tab === 'galleries') {
+            showGalleryListView();
+            loadGalleries();
+        }
     });
 }
 
@@ -718,6 +725,451 @@ async function deleteService(id, name) {
     }
 }
 
+// Galleries CRUD
+//
+//Galleries follow the same drag/move/edit/delete pattern as What's New and Services, but
+//also have a per-gallery "manage media" view that lets the curator add/remove items and
+//drag-reorder the members. Membership is stored on each Media doc in galleries[]; the
+//backend keeps the canonical record + member subdocs in sync via /api/galleries.
+
+//Cached list of every gallery, used both by the Galleries tab and by the media-edit modal's chip picker.
+//A single fetch on first use covers both surfaces; pass refresh=true to bust the cache after a write.
+var allGalleriesCache = [];
+//Promise of the in-flight fetch so concurrent callers wait on the same network round trip.
+var allGalleriesFetchPromise = null;
+async function fetchAllGalleries(refresh) {
+    //Return the cached list when one exists and the caller didn't ask for a refresh.
+    if (!refresh && allGalleriesCache.length > 0) return allGalleriesCache;
+    //Reuse an in-flight fetch so concurrent callers don't trigger multiple requests.
+    if (allGalleriesFetchPromise && !refresh) return allGalleriesFetchPromise;
+    //Kick off a new fetch and cache the promise.
+    allGalleriesFetchPromise = (async function () {
+        try {
+            //Hit the admin list so I get every gallery (including hidden ones) plus member ids.
+            var response = await apiCall('/api/galleries/admin');
+            allGalleriesCache = await response.json();
+        } catch (error) {
+            //Fall back to an empty list so the picker still works (just without autocomplete data).
+            allGalleriesCache = [];
+        } finally {
+            //Clear the in-flight promise so the next refresh fires a fresh request.
+            allGalleriesFetchPromise = null;
+        }
+        return allGalleriesCache;
+    })();
+    return allGalleriesFetchPromise;
+}
+
+//Show the gallery list view (default). Used both on initial render and when leaving the manage view.
+function showGalleryListView() {
+    var listView = document.getElementById('galleryViewList');
+    var manageView = document.getElementById('galleryViewManage');
+    //Bail when the section isn't on this page (defensive; admin.html always has it now).
+    if (!listView || !manageView) return;
+    //Toggle the active classes so CSS shows/hides each pane.
+    listView.classList.add('active');
+    manageView.classList.remove('active');
+}
+
+//Show the manage-media view for a specific gallery.
+function showGalleryManageView() {
+    var listView = document.getElementById('galleryViewList');
+    var manageView = document.getElementById('galleryViewManage');
+    if (!listView || !manageView) return;
+    listView.classList.remove('active');
+    manageView.classList.add('active');
+}
+
+//Fetch all galleries from the API and render them as cards in the grid. Initializes drag-and-drop after rendering.
+async function loadGalleries() {
+    //Grab the grid container.
+    var grid = document.getElementById('galleriesGrid');
+    if (!grid) return;
+    try {
+        //Hit the admin endpoint so I get hidden galleries too.
+        var response = await apiCall('/api/galleries/admin');
+        var galleries = await response.json();
+        //Refresh the shared cache so the media modal picker stays in sync.
+        allGalleriesCache = galleries;
+        grid.innerHTML = '';
+
+        if (galleries.length === 0) {
+            grid.innerHTML = '<p class="loading-text">No galleries yet. Click "+ Add Gallery" to create one.</p>';
+            return;
+        }
+
+        //Walk every gallery and render a card.
+        for (let index = 0; index < galleries.length; index++) {
+            let gallery = galleries[index];
+            let card = document.createElement('div');
+            card.className = 'item-card';
+            card.setAttribute('data-id', gallery._id);
+
+            //Build the card markup. Mirrors the What's New / Services card layout for visual consistency.
+            card.innerHTML =
+                //Reorder bar with drag handle and up/down buttons.
+                '<div class="card-reorder-bar">' +
+                '<span class="drag-handle" title="Drag to reorder">&#9776;</span>' +
+                '<div class="move-buttons">' +
+                '<button class="move-btn move-up-btn" title="Move up">&#9650;</button>' +
+                '<button class="move-btn move-down-btn" title="Move down">&#9660;</button>' +
+                '</div>' +
+                '</div>' +
+                //ID badges.
+                '<div class="card-ids">' +
+                '<span class="id-badge"><strong>_id:</strong> ' + escapeHtml(gallery._id) + '</span>' +
+                '<span class="id-badge"><strong>slug:</strong> ' + escapeHtml(gallery.slug) + '</span>' +
+                '</div>' +
+                //Title and description.
+                '<h3>' + escapeHtml(gallery.title || 'Untitled') + '</h3>' +
+                '<p class="card-description">' + escapeHtml(gallery.description || '') + '</p>' +
+                //Meta strip with member count, visibility, and sort order.
+                '<div class="card-meta">' +
+                '<span class="meta-tag">' + (gallery.mediaCount || 0) + (gallery.mediaCount === 1 ? ' item' : ' items') + '</span>' +
+                '<span class="meta-status ' + (gallery.display ? 'active' : 'inactive') + '">' +
+                (gallery.display ? 'Visible' : 'Hidden') + '</span>' +
+                '<span class="meta-sort">Sort: ' + (index + 1) + '</span>' +
+                '</div>' +
+                //Action buttons. Manage Media is the gallery-specific addition.
+                '<div class="card-actions">' +
+                '<button class="manage-btn">Manage Media</button>' +
+                '<button class="edit-btn">Edit</button>' +
+                '<button class="delete-btn">Delete</button>' +
+                '</div>';
+
+            //Wire up the move/drag/edit/delete/manage handlers. Each captures the gallery in a closure so click handlers see the correct record.
+            card.querySelector('.move-up-btn').addEventListener('click', function () {
+                moveCard(card, 'up', 'galleriesGrid', 'galleries');
+            });
+            card.querySelector('.move-down-btn').addEventListener('click', function () {
+                moveCard(card, 'down', 'galleriesGrid', 'galleries');
+            });
+            card.querySelector('.edit-btn').addEventListener('click', function () {
+                editGallery(gallery);
+            });
+            card.querySelector('.delete-btn').addEventListener('click', function () {
+                deleteGallery(gallery._id, gallery.title);
+            });
+            card.querySelector('.manage-btn').addEventListener('click', function () {
+                manageGalleryMedia(gallery);
+            });
+
+            grid.appendChild(card);
+        }
+
+        //Initialize drag-and-drop on the grid.
+        initSortable('galleriesGrid', 'galleries');
+    } catch (error) {
+        grid.innerHTML = '<p class="loading-text">Failed to load galleries.</p>';
+    }
+}
+
+//Open the Add Gallery modal with empty fields.
+document.getElementById('addGalleryBtn').addEventListener('click', function () {
+    currentEditType = 'gallery';
+    currentEditId = null;
+    modalFields.innerHTML = '';
+    //Title is required so the gallery has a meaningful display name.
+    modalFields.appendChild(createField('Title', 'title', 'text', '', true));
+    //Description is optional but useful for the public picker card.
+    modalFields.appendChild(createField('Description', 'description', 'textarea', '', false));
+    //Sort order goes to the bottom of the list by default.
+    modalFields.appendChild(createField('Sort Order', 'sortOrder', 'number', allGalleriesCache.length + 1, false));
+    //Visible by default so newly created galleries show up on the public page.
+    modalFields.appendChild(createField('Visible', 'display', 'checkbox', true, false));
+    openModal('Add Gallery');
+});
+
+//Open the Edit Gallery modal with the gallery's current values pre-filled.
+function editGallery(gallery) {
+    currentEditType = 'gallery';
+    currentEditId = gallery._id;
+    modalFields.innerHTML = '';
+    modalFields.appendChild(createField('Title', 'title', 'text', gallery.title || '', true));
+    modalFields.appendChild(createField('Slug', 'slug', 'text', gallery.slug || '', true));
+    modalFields.appendChild(createField('Description', 'description', 'textarea', gallery.description || '', false));
+    modalFields.appendChild(createField('Sort Order', 'sortOrder', 'number', gallery.sortOrder || 0, false));
+    modalFields.appendChild(createField('Visible', 'display', 'checkbox', gallery.display, false));
+    openModal('Edit Gallery');
+}
+
+//Delete a gallery after user confirmation. Server-side this also strips the slug from every member's galleries[].
+async function deleteGallery(id, name) {
+    if (!confirm('Are you sure you want to delete "' + (name || 'this gallery') + '"?\n\nThis will also remove the gallery membership from every photo and video that belonged to it.\n\n_id: ' + id)) return;
+    try {
+        var response = await apiCall('/api/galleries/' + id, { method: 'DELETE' });
+        if (response.ok) {
+            //Refresh the grid and bust the picker cache so the deleted gallery vanishes everywhere.
+            loadGalleries();
+            fetchAllGalleries(true);
+        } else {
+            var data = await response.json();
+            alert(data.error || 'Failed to delete gallery.');
+        }
+    } catch (error) {
+        alert('Error deleting gallery.');
+    }
+}
+
+// Galleries — manage media view
+
+//Active gallery whose membership is being edited inside the manage view. Used by the
+//add/remove/reorder helpers so they don't all need the gallery passed in explicitly.
+var currentManageGallery = null;
+//All media currently loaded into the manage view. Filtered locally on search.
+var manageAllMedia = [];
+//Set of media IDs currently in this gallery, kept in sync with the right pane.
+var manageMemberIds = new Set();
+
+//Switch the galleries section to the manage-media view for a single gallery.
+async function manageGalleryMedia(gallery) {
+    currentManageGallery = gallery;
+    showGalleryManageView();
+    //Update the header.
+    document.getElementById('galleryManageTitle').textContent = 'Manage media — ' + (gallery.title || 'Untitled');
+    document.getElementById('galleryManageMeta').textContent = 'slug: ' + gallery.slug;
+    //Reset both panes to a loading state.
+    document.getElementById('galleryManageAvailableList').innerHTML = '<p class="loading-text">Loading media...</p>';
+    document.getElementById('galleryMembersList').innerHTML = '<p class="loading-text">Loading members...</p>';
+    //Clear the search input so each open starts fresh.
+    document.getElementById('galleryManageSearch').value = '';
+    try {
+        //Fetch all media plus the latest gallery record (so memberIds reflects any concurrent edits).
+        var mediaResp = await apiCall('/api/media');
+        manageAllMedia = await mediaResp.json();
+        var galleriesResp = await apiCall('/api/galleries/admin');
+        var galleries = await galleriesResp.json();
+        //Refresh the cache so the picker stays in sync.
+        allGalleriesCache = galleries;
+        var fresh = galleries.find(function (g) { return g._id === gallery._id; });
+        //Use the freshest membership list when available; otherwise fall back to whatever the caller passed in.
+        var memberIds = (fresh && fresh.memberIds) ? fresh.memberIds : (gallery.memberIds || []);
+        manageMemberIds = new Set(memberIds.map(String));
+        //Render both panes.
+        renderManageAvailable();
+        renderManageMembers(memberIds);
+    } catch (error) {
+        document.getElementById('galleryManageAvailableList').innerHTML = '<p class="loading-text">Failed to load media.</p>';
+        document.getElementById('galleryMembersList').innerHTML = '<p class="loading-text">Failed to load members.</p>';
+    }
+}
+
+//Render the left pane: every media item not already in this gallery.
+function renderManageAvailable() {
+    var list = document.getElementById('galleryManageAvailableList');
+    var query = (document.getElementById('galleryManageSearch').value || '').trim().toLowerCase();
+    list.innerHTML = '';
+    //Filter to media not already in this gallery and (optionally) matching the search term.
+    var filtered = manageAllMedia.filter(function (m) {
+        if (manageMemberIds.has(String(m._id))) return false;
+        if (!query) return true;
+        //Match against title, file name, and tags so the user can find media by any reasonable signal.
+        var title = (m.title || '').toLowerCase();
+        var fileName = (m.fileName || '').toLowerCase();
+        var tags = (m.tags || []).join(' ').toLowerCase();
+        return title.indexOf(query) !== -1 || fileName.indexOf(query) !== -1 || tags.indexOf(query) !== -1;
+    });
+    if (filtered.length === 0) {
+        list.innerHTML = '<p class="loading-text">' + (query ? 'No media matches your filter.' : 'All media is in this gallery.') + '</p>';
+        return;
+    }
+    //Cap the visible list to keep the DOM manageable on large libraries.
+    var capped = filtered.slice(0, 200);
+    for (let i = 0; i < capped.length; i++) {
+        let media = capped[i];
+        let row = buildManageRow(media, 'available');
+        list.appendChild(row);
+    }
+}
+
+//Render the right pane: every media item that belongs to this gallery, in position order.
+function renderManageMembers(memberIds) {
+    var list = document.getElementById('galleryMembersList');
+    list.innerHTML = '';
+    //Build an index from id to media doc so I can render members in the order memberIds gave me.
+    var byId = {};
+    for (let i = 0; i < manageAllMedia.length; i++) byId[String(manageAllMedia[i]._id)] = manageAllMedia[i];
+    //Walk the ordered ids and render each member.
+    var rendered = 0;
+    for (let i = 0; i < memberIds.length; i++) {
+        var media = byId[String(memberIds[i])];
+        if (!media) continue;
+        let row = buildManageRow(media, 'member');
+        list.appendChild(row);
+        rendered++;
+    }
+    if (rendered === 0) {
+        list.innerHTML = '<p class="loading-text">No media yet. Add some from the left pane.</p>';
+        return;
+    }
+    //Initialize SortableJS on the members list so curators can drag-reorder.
+    if (sortableInstances['galleryMembersList']) {
+        sortableInstances['galleryMembersList'].destroy();
+    }
+    sortableInstances['galleryMembersList'] = new Sortable(list, {
+        animation: 200,
+        handle: '.gallery-member-handle',
+        ghostClass: 'sortable-ghost',
+        chosenClass: 'sortable-chosen',
+        dragClass: 'sortable-drag',
+        onEnd: function () {
+            saveGalleryMemberOrder();
+        }
+    });
+}
+
+//Build a single row for either pane. mode is 'available' (with + button) or 'member' (with handle + remove button).
+function buildManageRow(media, mode) {
+    var row = document.createElement('div');
+    //Apply both base classes so CSS can style by mode.
+    row.className = 'gallery-member-row gallery-member-row-' + mode;
+    row.setAttribute('data-id', media._id);
+
+    //Drag handle for member rows.
+    if (mode === 'member') {
+        var handle = document.createElement('span');
+        handle.className = 'gallery-member-handle';
+        handle.title = 'Drag to reorder';
+        handle.innerHTML = '&#9776;';
+        row.appendChild(handle);
+    }
+
+    //Thumbnail strip.
+    var thumbWrap = document.createElement('div');
+    thumbWrap.className = 'gallery-member-thumb';
+    if (media.thumbnailPath) {
+        var img = document.createElement('img');
+        //Strip any leading directory so the URL hits the static /thumbnails route.
+        var fname = media.thumbnailPath.split('/').pop();
+        img.src = '/thumbnails/' + encodeURIComponent(fname);
+        img.alt = media.title || '';
+        img.loading = 'lazy';
+        thumbWrap.appendChild(img);
+    } else {
+        thumbWrap.textContent = (media.mediaType === 'video' ? '\u25B6' : '');
+    }
+    row.appendChild(thumbWrap);
+
+    //Title + filename.
+    var meta = document.createElement('div');
+    meta.className = 'gallery-member-meta';
+    meta.innerHTML = '<strong>' + escapeHtml(media.title || media.fileName || 'Untitled') + '</strong>' +
+        '<small>' + escapeHtml(media.fileName || '') + '</small>';
+    row.appendChild(meta);
+
+    //Trailing action button.
+    var actions = document.createElement('div');
+    actions.className = 'gallery-member-actions';
+    if (mode === 'available') {
+        var addBtn = document.createElement('button');
+        addBtn.type = 'button';
+        addBtn.className = 'add-btn-inline';
+        addBtn.textContent = '+ Add';
+        addBtn.addEventListener('click', function () {
+            addMediaToCurrentGallery(media._id);
+        });
+        actions.appendChild(addBtn);
+    } else {
+        var removeBtn = document.createElement('button');
+        removeBtn.type = 'button';
+        removeBtn.className = 'remove-btn-inline';
+        removeBtn.title = 'Remove from gallery';
+        removeBtn.innerHTML = '&times;';
+        removeBtn.addEventListener('click', function () {
+            removeMediaFromCurrentGallery(media._id);
+        });
+        actions.appendChild(removeBtn);
+    }
+    row.appendChild(actions);
+
+    return row;
+}
+
+//Add a media item to the active gallery. Optimistically updates the panes then refreshes from server on response.
+async function addMediaToCurrentGallery(mediaId) {
+    if (!currentManageGallery) return;
+    try {
+        var response = await apiCall('/api/galleries/' + currentManageGallery._id + '/media', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ mediaId: mediaId })
+        });
+        if (!response.ok) {
+            var data = await response.json();
+            alert(data.error || 'Failed to add media to gallery.');
+            return;
+        }
+        //Track membership locally and re-render both panes immediately.
+        manageMemberIds.add(String(mediaId));
+        renderManageAvailable();
+        //Build the new ordered member list by appending to the existing one.
+        var memberIds = readMemberOrder();
+        if (memberIds.indexOf(String(mediaId)) === -1) memberIds.push(String(mediaId));
+        renderManageMembers(memberIds);
+        //Refresh the gallery cache so the count badge on the Galleries grid stays accurate.
+        fetchAllGalleries(true);
+    } catch (error) {
+        alert('Error adding media to gallery.');
+    }
+}
+
+//Remove a media item from the active gallery.
+async function removeMediaFromCurrentGallery(mediaId) {
+    if (!currentManageGallery) return;
+    try {
+        var response = await apiCall('/api/galleries/' + currentManageGallery._id + '/media/' + mediaId, {
+            method: 'DELETE'
+        });
+        if (!response.ok) {
+            var data = await response.json();
+            alert(data.error || 'Failed to remove media from gallery.');
+            return;
+        }
+        //Update the local membership set and re-render both panes.
+        manageMemberIds.delete(String(mediaId));
+        var memberIds = readMemberOrder().filter(function (id) { return id !== String(mediaId); });
+        renderManageAvailable();
+        renderManageMembers(memberIds);
+        fetchAllGalleries(true);
+    } catch (error) {
+        alert('Error removing media from gallery.');
+    }
+}
+
+//Pull the current member order out of the DOM (reflects any drag reorders not yet persisted).
+function readMemberOrder() {
+    var rows = document.querySelectorAll('#galleryMembersList .gallery-member-row');
+    var ids = [];
+    for (var i = 0; i < rows.length; i++) ids.push(rows[i].getAttribute('data-id'));
+    return ids;
+}
+
+//Persist the current member order to the server after a drag-and-drop reorder.
+async function saveGalleryMemberOrder() {
+    if (!currentManageGallery) return;
+    var ids = readMemberOrder();
+    if (ids.length === 0) return;
+    try {
+        await apiCall('/api/galleries/' + currentManageGallery._id + '/media/reorder', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ids: ids })
+        });
+    } catch (error) {
+        alert('Error saving member order.');
+    }
+}
+
+//Search input + back button wiring for the manage view.
+document.getElementById('galleryManageSearch').addEventListener('input', function () {
+    renderManageAvailable();
+});
+document.getElementById('galleryManageBackBtn').addEventListener('click', function () {
+    showGalleryListView();
+    //Refresh the gallery list so the count badges reflect any changes.
+    loadGalleries();
+});
+
 //Form submission handler shared by every modal. Reads the form data, picks POST or PUT based on whether I have an edit ID, and reloads the affected grid on success.
 modalForm.addEventListener('submit', async function (event) {
     event.preventDefault();
@@ -778,21 +1230,19 @@ modalForm.addEventListener('submit', async function (event) {
         //Attach the collected tag list to the request body.
         body.tags = tags;
 
-        //Collect galleries from the gallery inputs.
-        var galleryInputs = modalFields.querySelectorAll('.gallery-entry');
-        //Build the outgoing galleries array from each gallery row.
+        //Collect galleries from the chip picker. Each pill carries data-slug + data-name set by createGalleryInput.
+        var galleryPills = modalFields.querySelectorAll('.gallery-pill');
         var galleries = [];
-        for (const entry of galleryInputs) {
-            //Read the trimmed gallery name from each entry's input field.
-            var gName = entry.querySelector('.gallery-name-input').value.trim();
-            if (gName) {
-                //Build a gallery object with a URL-safe slug, the display name, and a default position.
+        for (const pill of galleryPills) {
+            //Read the slug + display name straight off the chip's data attributes.
+            var gSlug = pill.getAttribute('data-slug');
+            var gName = pill.getAttribute('data-name');
+            if (gSlug && gName) {
+                //Build a gallery membership entry. galleryPosition is left at 1 here; the per-gallery
+                //reorder UI under the Galleries tab is the canonical place to set positions.
                 galleries.push({
-                    //Slug strips non-alphanumerics and trims dashes for a clean URL fragment.
-                    gallerySlug: gName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''),
-                    //Display name preserves the user's original casing and spacing.
+                    gallerySlug: gSlug,
                     galleryName: gName,
-                    //Default position; the server may reorder later via drag-and-drop.
                     galleryPosition: 1
                 });
             }
@@ -831,6 +1281,11 @@ modalForm.addEventListener('submit', async function (event) {
         //Media records can only be edited (uploads are handled separately) so always PUT against the ID.
         url = '/api/media/' + editId;
         method = 'PUT';
+    } else if (editType === 'gallery') {
+        //Existing galleries use PUT against the gallery ID, new ones POST to the collection root.
+        url = editId ? '/api/galleries/' + editId : '/api/galleries';
+        //PUT for updates, POST for creates.
+        method = editId ? 'PUT' : 'POST';
     } else {
         //Services follow the same create-vs-update pattern as What's New.
         url = editId ? '/api/services/' + editId : '/api/services';
@@ -856,6 +1311,11 @@ modalForm.addEventListener('submit', async function (event) {
             } else if (editType === 'media') {
                 //Refresh the Media grid.
                 loadMedia();
+            } else if (editType === 'gallery') {
+                //Refresh the Galleries grid and refresh the cached list used by the media-modal picker.
+                loadGalleries();
+                //Invalidate the gallery cache so the next media edit picks up any new title/slug/sortOrder changes.
+                fetchAllGalleries(true);
             } else {
                 //Refresh the Services grid.
                 loadServices();
@@ -1070,67 +1530,192 @@ function createTagPicker(initialTags) {
     return container;
 }
 
-//Create a gallery input section. Returns a container div with an "Add Gallery" button and dynamic gallery name inputs.
+//Create a gallery picker widget (chip-based, mirrors createTagPicker). Returns a container div with
+//pill display, typeahead input, and dropdown over the cached canonical gallery list. A trailing
+//"+ Create" entry POSTs to /api/galleries when the typed name doesn't already exist, so admins can
+//create galleries inline without leaving the media modal. initialGalleries is an array of subdoc
+//entries shaped like { gallerySlug, galleryName, galleryPosition }.
 function createGalleryInput(initialGalleries) {
-    //Outer wrapper styled like the rest of the form fields.
+    //Outer form-group wrapper so the picker sits alongside the other fields visually.
     var container = document.createElement('div');
     container.className = 'form-group';
 
-    //Section label so the user knows what these inputs are for.
+    //Section label.
     var label = document.createElement('label');
-    label.textContent = 'Galleries *';
+    label.textContent = 'Galleries';
     container.appendChild(label);
 
-    //Inner wrapper that holds the per-gallery rows (so the Add button stays anchored below them).
-    var entriesWrap = document.createElement('div');
-    entriesWrap.className = 'gallery-entries';
-    container.appendChild(entriesWrap);
+    //Picker shell that holds pills + input together inside a single rounded box.
+    var picker = document.createElement('div');
+    picker.className = 'tag-picker gallery-picker';
 
-    //Helper for building a single gallery entry row with a name input and a remove button.
-    function addEntry(name) {
-        //Wrapper for one gallery row.
-        var entry = document.createElement('div');
-        entry.className = 'gallery-entry';
-        //The text input the user types the gallery name into.
-        var nameInput = document.createElement('input');
-        nameInput.type = 'text';
-        nameInput.className = 'gallery-name-input';
-        nameInput.placeholder = 'Gallery name (e.g. Wildlife)';
-        nameInput.value = name || '';
-        entry.appendChild(nameInput);
+    //Area where the selected gallery pills are rendered.
+    var pillsArea = document.createElement('div');
+    pillsArea.className = 'tag-pills-area gallery-pills-area';
+    picker.appendChild(pillsArea);
 
-        //Remove button so the user can drop a gallery they added by mistake.
-        var removeBtn = document.createElement('button');
-        removeBtn.type = 'button';
-        removeBtn.className = 'gallery-remove-btn';
-        //Multiplication sign as a close-style icon.
-        removeBtn.textContent = '\u00D7';
-        removeBtn.addEventListener('click', function () {
-            //Pop this whole entry out of the DOM when the user clicks the remove button.
-            entry.remove();
-        });
-        entry.appendChild(removeBtn);
-        //Append the completed entry into the entries wrapper.
-        entriesWrap.appendChild(entry);
+    //Wrapper around the text input and dropdown.
+    var inputWrap = document.createElement('div');
+    inputWrap.className = 'tag-input-wrap';
+
+    //Typeahead input.
+    var input = document.createElement('input');
+    input.type = 'text';
+    input.className = 'tag-input';
+    input.placeholder = 'Type to search or create a gallery...';
+    inputWrap.appendChild(input);
+
+    //Dropdown that shows matching existing galleries or a Create option.
+    var dropdown = document.createElement('div');
+    dropdown.className = 'tag-dropdown gallery-dropdown';
+    dropdown.style.display = 'none';
+    inputWrap.appendChild(dropdown);
+
+    picker.appendChild(inputWrap);
+    container.appendChild(picker);
+
+    //Read the currently selected gallery slugs out of the rendered chips.
+    function getCurrentSlugs() {
+        var slugs = [];
+        var pills = pillsArea.querySelectorAll('.gallery-pill');
+        for (const pill of pills) {
+            slugs.push(pill.getAttribute('data-slug'));
+        }
+        return slugs;
     }
 
-    //Populate initial galleries.
+    //Add a chip for a gallery (slug + display name on the chip itself).
+    function addGalleryPill(slug, name) {
+        //Bail when missing either piece — caller error rather than user error.
+        if (!slug || !name) return;
+        //Prevent duplicates.
+        if (getCurrentSlugs().indexOf(slug) !== -1) return;
+        //Build the chip with its data attributes; serialization reads these on submit.
+        var pill = document.createElement('span');
+        pill.className = 'tag-pill gallery-pill';
+        pill.setAttribute('data-slug', slug);
+        pill.setAttribute('data-name', name);
+        //Show the human name on the chip; the slug is hidden in the data attribute.
+        pill.innerHTML = escapeHtml(name) + ' <button type="button" class="tag-pill-remove">&times;</button>';
+        pill.querySelector('.tag-pill-remove').addEventListener('click', function () {
+            pill.remove();
+        });
+        pillsArea.appendChild(pill);
+    }
+
+    //Populate the picker with whatever galleries the media doc was already a member of.
     if (initialGalleries && initialGalleries.length) {
-        //Build a row for each pre-existing gallery on the item.
         for (const g of initialGalleries) {
-            addEntry(g.galleryName || '');
+            addGalleryPill(g.gallerySlug || '', g.galleryName || '');
         }
     }
 
-    //Add Gallery button that appends a fresh empty row when clicked.
-    var addBtn = document.createElement('button');
-    addBtn.type = 'button';
-    addBtn.className = 'gallery-add-btn';
-    addBtn.textContent = '+ Add Gallery';
-    addBtn.addEventListener('click', function () { addEntry(''); });
-    container.appendChild(addBtn);
+    //Show dropdown filtered by the input value.
+    function showDropdown() {
+        var query = input.value.trim().toLowerCase();
+        var current = getCurrentSlugs();
+        //Filter the cached gallery list: match query against title or slug AND not already selected.
+        var filtered = allGalleriesCache.filter(function (g) {
+            if (current.indexOf(g.slug) !== -1) return false;
+            if (!query) return true;
+            return (g.title || '').toLowerCase().indexOf(query) !== -1
+                || (g.slug || '').toLowerCase().indexOf(query) !== -1;
+        });
 
-    //Hand the finished gallery input back to the caller.
+        //Hide the dropdown when there's nothing to show and the user hasn't typed anything yet.
+        if (filtered.length === 0 && !query) {
+            dropdown.style.display = 'none';
+            return;
+        }
+
+        dropdown.innerHTML = '';
+
+        //If the typed name doesn't match any existing gallery, surface a Create option that POSTs a new one.
+        var queryMatchesExisting = allGalleriesCache.some(function (g) {
+            return (g.title || '').toLowerCase() === query || (g.slug || '').toLowerCase() === query;
+        });
+        if (query && !queryMatchesExisting) {
+            var createItem = document.createElement('div');
+            createItem.className = 'tag-dropdown-item tag-dropdown-create';
+            createItem.textContent = 'Create gallery "' + query + '"';
+            //Use mousedown so the action fires before the input's blur hides the dropdown.
+            createItem.addEventListener('mousedown', async function (e) {
+                e.preventDefault();
+                //Capture the typed name before clearing the input.
+                var newName = input.value.trim();
+                if (!newName) return;
+                try {
+                    //POST to the gallery API to create the new gallery. Server auto-derives the slug.
+                    var response = await apiCall('/api/galleries', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ title: newName, sortOrder: allGalleriesCache.length + 1 })
+                    });
+                    if (!response.ok) {
+                        var data = await response.json();
+                        alert(data.error || 'Failed to create gallery.');
+                        return;
+                    }
+                    var created = await response.json();
+                    //Append to the cache so the next dropdown render sees it without a refetch.
+                    allGalleriesCache.push(created);
+                    //Add the new gallery as a chip and reset the input.
+                    addGalleryPill(created.slug, created.title);
+                    input.value = '';
+                    dropdown.style.display = 'none';
+                } catch (error) {
+                    alert('Error creating gallery.');
+                }
+            });
+            dropdown.appendChild(createItem);
+        }
+
+        //Render up to 15 matching galleries as dropdown rows.
+        for (const gallery of filtered.slice(0, 15)) {
+            var item = document.createElement('div');
+            item.className = 'tag-dropdown-item';
+            item.textContent = gallery.title + (gallery.slug && gallery.slug !== gallery.title ? ' (' + gallery.slug + ')' : '');
+            //Mousedown so it fires before blur hides the dropdown.
+            item.addEventListener('mousedown', (function (g) {
+                return function (e) {
+                    e.preventDefault();
+                    //Add the chip and clear the input so the user can pick another.
+                    addGalleryPill(g.slug, g.title);
+                    input.value = '';
+                    dropdown.style.display = 'none';
+                };
+            })(gallery));
+            dropdown.appendChild(item);
+        }
+
+        dropdown.style.display = dropdown.children.length > 0 ? 'block' : 'none';
+    }
+
+    //Re-run the filter on input/focus and hide on blur (with a small delay so mousedown can register).
+    input.addEventListener('input', showDropdown);
+    input.addEventListener('focus', showDropdown);
+    input.addEventListener('blur', function () {
+        setTimeout(function () { dropdown.style.display = 'none'; }, 200);
+    });
+
+    //Enter on a typed value — if the value matches an existing gallery (case-insensitive), add it.
+    //Otherwise, defer to the user clicking the Create row so we don't accidentally make galleries on every keystroke.
+    input.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            var val = input.value.trim();
+            if (!val) return;
+            var match = allGalleriesCache.find(function (g) {
+                return (g.title || '').toLowerCase() === val.toLowerCase() || (g.slug || '').toLowerCase() === val.toLowerCase();
+            });
+            if (match) {
+                addGalleryPill(match.slug, match.title);
+                input.value = '';
+                dropdown.style.display = 'none';
+            }
+        }
+    });
+
     return container;
 }
 
@@ -1309,8 +1894,9 @@ async function editMedia(item) {
     //Capture the media ID so the submit handler knows which record to update.
     currentEditId = item._id;
 
-    //Refresh the tag cache before building the picker so the autocomplete shows the latest set.
+    //Refresh the tag and gallery caches before building the picker so the autocomplete shows the latest set.
     await fetchAllTags();
+    await fetchAllGalleries();
 
     //Wipe any leftover fields from a previous modal session before rebuilding the form.
     modalFields.innerHTML = '';
@@ -1455,8 +2041,9 @@ document.getElementById('mediaFileInput').addEventListener('change', async funct
     //Sticky flag set to true on any per-file failure.
     var hasError = false;
 
-    //Fetch latest tags before starting the upload workflow.
+    //Fetch latest tags and galleries before starting the upload workflow so both pickers have current data.
     await fetchAllTags();
+    await fetchAllGalleries();
 
     //Upload results to process for missing fields.
     var uploadResults = [];
@@ -1789,16 +2376,16 @@ function collectModalFormData(doc) {
     }
     body.tags = tags;
 
-    //Galleries.
-    var galleryInputs = modalFields.querySelectorAll('.gallery-entry');
+    //Galleries — chip picker emits one .gallery-pill per selected gallery, with slug + name on data attrs.
+    var galleryPills = modalFields.querySelectorAll('.gallery-pill');
     var galleries = [];
-    for (const entry of galleryInputs) {
-        //Read the trimmed gallery name from each entry.
-        var gName = entry.querySelector('.gallery-name-input').value.trim();
-        if (gName) {
-            //Build a gallery object with a URL-safe slug, the display name, and a default position.
+    for (const pill of galleryPills) {
+        var gSlug = pill.getAttribute('data-slug');
+        var gName = pill.getAttribute('data-name');
+        if (gSlug && gName) {
+            //Build a gallery object using the slug + name straight off the chip.
             galleries.push({
-                gallerySlug: gName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''),
+                gallerySlug: gSlug,
                 galleryName: gName,
                 galleryPosition: 1
             });
@@ -2063,8 +2650,9 @@ function runBatchEntry(uploadResults) {
             //Fire the save request for this item.
             saveMediaItem(batchItems[batchIndex].document._id, body).then(function (resp) {
                 if (resp.ok) {
-                    //Refresh the tag cache so the next item's picker has any new tags this curator just added.
+                    //Refresh the tag and gallery caches so the next item's pickers see anything the curator just created.
                     fetchAllTags();
+                    fetchAllGalleries(true);
                     if (batchIndex < batchTotal - 1) {
                         //More items to go, advance to the next one.
                         showItem(batchIndex + 1);
