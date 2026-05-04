@@ -830,6 +830,7 @@ const finalizeUpload = asyncHandler(async function (req, res) {
         if (!mediaDoc.description) missingRequired.push('description');
         if (!mediaDoc.alt) missingRequired.push('alt');
         if (!mediaDoc.galleries || mediaDoc.galleries.length === 0) missingRequired.push('galleries');
+
         //Push the per-file result.
         results.push({ document: mediaDoc.toObject(), autoTags: autoTags, missingRequired: missingRequired });
 
@@ -907,6 +908,7 @@ const finalizeUpload = asyncHandler(async function (req, res) {
         if (!mediaDoc.description) missingRequired.push('description');
         if (!mediaDoc.alt) missingRequired.push('alt');
         if (!mediaDoc.galleries || mediaDoc.galleries.length === 0) missingRequired.push('galleries');
+
         //Push the per-file result.
         results.push({ document: mediaDoc.toObject(), autoTags: autoTags, missingRequired: missingRequired });
     }

@@ -199,6 +199,11 @@ var modalForm = document.getElementById('modalForm');
 //Track which entity type and record ID the modal is currently editing. ID is null for new records.
 var currentEditType = null;
 var currentEditId = null;
+//True while runBatchEntry has its own handleSave attached to the modal form. The global submit
+//handler bails out when this is set so the batch handler is the sole submitter — without this
+//guard both handlers fire on submit and send two PUTs to the same record, racing against each
+//other and producing "source missing" rename warnings on the second.
+var batchEntryActive = false;
 
 //Show the modal with the given title text.
 function openModal(title) {
@@ -716,6 +721,12 @@ async function deleteService(id, name) {
 //Form submission handler shared by every modal. Reads the form data, picks POST or PUT based on whether I have an edit ID, and reloads the affected grid on success.
 modalForm.addEventListener('submit', async function (event) {
     event.preventDefault();
+
+    //If the batch entry flow has its own handleSave listener attached, defer to it.
+    //Both handlers would otherwise fire on the same submit, sending two PUTs to the same
+    //record and racing — the second PUT reads a stale `existing` doc and tries to rename
+    //source files that the first PUT already moved.
+    if (batchEntryActive) return;
 
     //Capture the edit type and ID before closing the modal (closeModal resets these values).
     var editType = currentEditType;
@@ -2024,6 +2035,8 @@ function runBatchEntry(uploadResults) {
         function cleanupListeners() {
             //Detach the submit handler from the form.
             modalForm.removeEventListener('submit', handleSave);
+            //Re-enable the global submit handler now that the batch handler is gone.
+            batchEntryActive = false;
             //Look up the Back button so we can detach its handler too.
             var backBtn = document.getElementById('modalBackBtn');
             if (backBtn) {
@@ -2105,6 +2118,8 @@ function runBatchEntry(uploadResults) {
 
         //Wire up all the batch-specific event listeners on the shared modal elements.
         modalForm.addEventListener('submit', handleSave);
+        //Disable the global submit handler so it doesn't double-submit alongside handleSave.
+        batchEntryActive = true;
         //Look up the Back button so we can wire it up if it exists.
         var backBtn = document.getElementById('modalBackBtn');
         if (backBtn) {
