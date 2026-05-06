@@ -1,8 +1,3 @@
-/* Styles specific to the public /galleries page. Builds on the design tokens and reusable
- * patterns from /index.css (which is loaded alongside this file). */
-
-/* Hero strip — mirrors the .about-section dark surface treatment so the page header
- * sits visually below the navigation without competing with the gallery cards beneath. */
 .galleries-hero {
     background-color: var(--lake);
     color: var(--birch);
@@ -27,8 +22,6 @@
     line-height: 1.7;
 }
 
-/* Gallery picker — light section with a multi-column card grid (mirrors .services-grid
- * patterns from index.css for visual continuity). */
 .gallery-list-section {
     padding: 3rem 2rem;
     background-color: var(--birch);
@@ -50,7 +43,6 @@
     width: 100%;
 }
 
-/* Gallery card — clickable tile with cover image, title, description, and item count. */
 .gallery-list-card {
     background: var(--white);
     border: 1px solid rgba(27, 73, 101, 0.12);
@@ -125,7 +117,6 @@
     font-weight: 300;
     color: var(--dark);
     flex: 1;
-    /* Clamp to three lines so cards stay even-height. */
     display: -webkit-box;
     -webkit-line-clamp: 3;
     -webkit-box-orient: vertical;
@@ -146,7 +137,6 @@
     letter-spacing: 0.04rem;
 }
 
-/* Detail section — selected gallery view. Reuses .gallery-grid + .gallery-row from index.css. */
 .gallery-detail-section {
     padding: 2.5rem 2rem 3rem;
     background-color: var(--birch);
@@ -201,7 +191,6 @@
     letter-spacing: 0.05rem;
 }
 
-/* Empty / error states inside the detail grid. */
 .gallery-detail-section .gallery-grid .empty-state {
     grid-column: 1 / -1;
     text-align: center;
@@ -209,7 +198,6 @@
     color: var(--gray, #6c757d);
 }
 
-/* Tablet — collapse to two columns. */
 @media (max-width: 992px) {
     .galleries-hero {
         padding: 2.5rem 1.5rem 2rem;
@@ -226,7 +214,6 @@
     }
 }
 
-/* Mobile — stack to a single column and tighten spacing. */
 @media (max-width: 576px) {
     .galleries-hero {
         padding: 2rem 1rem 1.5rem;

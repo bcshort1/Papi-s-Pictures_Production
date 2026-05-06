@@ -44,7 +44,6 @@
     </div>
 
     <script>
-        //Handle login form submission. Sends a POST request to /api/login with the username and password.
         document.getElementById('loginForm').addEventListener('submit', async function (event) {
             event.preventDefault();
             var errorDiv = document.getElementById('loginError');
@@ -62,10 +61,8 @@
                 var data = await response.json();
 
                 if (response.ok && data.success) {
-                    //Admins land on the admin panel; customer-tier accounts go to the homepage.
                     window.location.href = data.accountType === 'admin' ? '/admin' : '/';
                 } else {
-                    //Display the error message returned by the server.
                     errorDiv.textContent = data.error || 'Login failed';
                     errorDiv.style.display = 'block';
                 }

@@ -1,4 +1,3 @@
-//Load environment variables from encrypted .env file via dotenvx.
 require('@dotenvx/dotenvx').config({ quiet: true });
 
 const mongoose = require('mongoose');
@@ -12,19 +11,12 @@ const User = require('../backend/models/User');
 const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/papis_pictures';
 const BACKUP_ROOT = path.join(__dirname, '..', 'backup');
 
-//Map of collection-file-name (without .json) -> Mongoose model + display label. Driven by
-//whatever mongoexport wrote into <backup>/db/. The "users" collection is intentionally not
-//listed; the admin user is created/updated below using the User model so the pre-save bcrypt
-//hook runs and a known-good password is restored.
 const COLLECTION_MAP = {
     media: { model: Media, label: 'Media' },
     licensing_and_services: { model: LicensingAndService, label: 'Licensing & Services' },
     whats_new: { model: WhatsNew, label: "What's New" }
 };
 
-//Resolve which backup folder to seed from. If a CLI arg is provided (e.g.
-//`npm run seed -- 2026-04-29_151901`) it is used directly; otherwise the newest timestamped
-//folder under backup/ that has a db/ subdirectory is chosen.
 function resolveBackupDir() {
     const explicit = process.argv[2];
     if (explicit) {
@@ -49,13 +41,9 @@ function resolveBackupDir() {
         throw new Error('No backup folders with a db/ export were found under ' + BACKUP_ROOT);
     }
 
-    //Timestamp folder names sort lexicographically in chronological order, so the last
-    //element is the most recent backup.
     return path.join(BACKUP_ROOT, candidates[candidates.length - 1]);
 }
 
-//Convert MongoDB Extended JSON types ($oid, $date, $numberDecimal) to native JS types
-//compatible with Mongoose. mongoexport emits these wrapper objects for non-primitive types.
 function convertExtendedJSON(object) {
     if (object === null || object === undefined) return object;
     if (Array.isArray(object)) return object.map(convertExtendedJSON);
@@ -74,15 +62,12 @@ function convertExtendedJSON(object) {
     return result;
 }
 
-//Read and parse a JSON file written by mongoexport (--jsonArray), converting Extended JSON
-//wrapper types into native JS values along the way.
 function loadCollectionFile(filePath) {
     const raw = fs.readFileSync(filePath, 'utf-8');
     const parsed = JSON.parse(raw);
     return Array.isArray(parsed) ? parsed.map(convertExtendedJSON) : [convertExtendedJSON(parsed)];
 }
 
-//Upsert documents into a Mongoose model using slug as the unique key for duplicate prevention.
 async function upsertDocuments(Model, documents, label) {
     console.log(`Seeding ${documents.length} ${label} document(s)...`);
     let inserted = 0;
@@ -115,9 +100,6 @@ async function seed() {
     await mongoose.connect(MONGO_URI);
     console.log('Connected to MongoDB.\n');
 
-    //Iterate the known collection map and seed any matching files that exist in the backup.
-    //Files present in db/ that aren't mapped here are skipped with a warning so unexpected
-    //exports never silently bypass schema validation.
     const filesInBackup = new Set(fs.readdirSync(dbDir).filter(function (f) { return f.endsWith('.json'); }));
 
     for (const [collectionName, entry] of Object.entries(COLLECTION_MAP)) {
@@ -135,13 +117,8 @@ async function seed() {
         console.warn(`Ignoring unmapped backup file: ${leftover}`);
     }
 
-    //Seed admin users. Uses User.save() so the pre-save hook hashes the password with bcrypt.
-    //The users collection is intentionally excluded from backups, so this is the only place
-    //admin credentials are (re)established. accountType is lowercase 'admin' to match the
-    //requireAuth gate, which compares strictly.
     console.log('\nSeeding admin users...');
 
-    //Default admin used by the project owner.
     let adminUser = await User.findOne({ username: 'Admin' });
     if (!adminUser) {
         adminUser = new User({ username: 'Admin', password: 'Admin', accountType: 'admin' });
@@ -154,7 +131,6 @@ async function seed() {
         console.log('  Admin user already exists (updated).');
     }
 
-    //Instructor evaluation account from the rubric.
     let svsuUser = await User.findOne({ username: 'svsu' });
     if (!svsuUser) {
         svsuUser = new User({ username: 'svsu', password: 'cardinal', accountType: 'admin' });
@@ -172,7 +148,6 @@ async function seed() {
     console.log('Disconnected from MongoDB.');
 }
 
-//Handle seed failure by logging the error and exiting with a non-zero status code.
 seed().catch(function (error) {
     console.error('Seed failed:', error);
     process.exit(1);

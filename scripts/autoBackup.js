@@ -1,5 +1,3 @@
-//Load environment variables from the encrypted .env file via dotenvx so MONGO_URI is available
-//for the database export step. This is a no-op if dotenvx already populated process.env.
 require('@dotenvx/dotenvx').config({ quiet: true });
 
 const fs = require('fs');
@@ -9,17 +7,12 @@ const { execFileSync } = require('child_process');
 const PROJECT_ROOT = path.join(__dirname, '..');
 const BACKUP_ROOT = path.join(PROJECT_ROOT, 'backup');
 
-//Directories and files to include in the source-code portion of the backup.
 const INCLUDE = ['server.js', 'package.json', 'package-lock.json', 'backend', 'public', 'scripts'];
 
-//Directories to exclude (even if nested inside included directories).
 const EXCLUDE = ['node_modules', 'media', '.env.keys', 'backup'];
 
-//MongoDB collections to export. The "users" collection is intentionally omitted so bcrypt
-//password hashes are not committed to the backup; admin user creation lives in seed.js.
 const COLLECTIONS_TO_EXPORT = ['media', 'licensing_and_services', 'whats_new'];
 
-//Build a timestamp string for the backup folder name (YYYY-MM-DD_HHmmss).
 function buildTimestamp() {
     const now = new Date();
     const pad = function (n) { return n < 10 ? '0' + n : String(n); };
@@ -27,7 +20,6 @@ function buildTimestamp() {
            '_' + pad(now.getHours()) + pad(now.getMinutes()) + pad(now.getSeconds());
 }
 
-//Recursively copy a directory, skipping excluded folder names.
 function copyDirSync(src, dest) {
     fs.mkdirSync(dest, { recursive: true });
     const entries = fs.readdirSync(src, { withFileTypes: true });
@@ -43,7 +35,6 @@ function copyDirSync(src, dest) {
     }
 }
 
-//Copy the source-code portion of the backup.
 function backupSourceFiles(backupDir) {
     for (const item of INCLUDE) {
         const srcPath = path.join(PROJECT_ROOT, item);
@@ -63,9 +54,6 @@ function backupSourceFiles(backupDir) {
     }
 }
 
-//Export each whitelisted MongoDB collection to JSON via mongoexport. Each collection becomes
-//its own file in <backupDir>/db/<collection>.json using MongoDB Extended JSON, which the seed
-//script knows how to convert back to native types.
 function backupDatabase(backupDir) {
     const mongoUri = process.env.MONGO_URI;
     if (!mongoUri) {
@@ -73,7 +61,6 @@ function backupDatabase(backupDir) {
         return;
     }
 
-    //Confirm mongoexport is on the PATH before attempting any exports.
     try {
         execFileSync('mongoexport', ['--version'], { stdio: 'ignore' });
     } catch (e) {

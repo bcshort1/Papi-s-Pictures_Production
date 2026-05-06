@@ -6,7 +6,6 @@
     box-sizing: border-box;
 }
 
-/* Color palette inspired by the Northern Michigan landscape — lakes, sky, sand, sunsets, and pine forests. */
 :root {
     --lake: #1B4965;
     --sky: #5FA8D3;
@@ -47,7 +46,6 @@ img {
     display: block;
 }
 
-/* Page grid layout. */
 .page-grid {
     display: grid;
     grid-template-columns: 1fr;
@@ -59,7 +57,6 @@ img {
     min-height: 100vh;
 }
 
-/* Header. */
 .site-header {
     grid-area: header;
     background-color: var(--lake);
@@ -107,7 +104,6 @@ img {
     color: var(--sunset);
 }
 
-/* Hamburger menu for mobile. */
 .hamburger {
     display: none;
     flex-direction: column;
@@ -122,7 +118,6 @@ img {
     border-radius: 3px;
 }
 
-/* Transform hamburger into an X when active. */
 .hamburger.active span:nth-child(1) {
     transform: rotate(45deg) translate(5px, 6px);
 }
@@ -135,14 +130,12 @@ img {
     transform: rotate(-45deg) translate(5px, -6px);
 }
 
-/* Main content. */
 .site-main {
     grid-area: main;
     width: 100%;
     overflow-x: clip;
 }
 
-/* Welcome section. */
 .welcome {
     position: relative;
     width: 100%;
@@ -152,7 +145,6 @@ img {
     grid-template-areas: "stack";
 }
 
-/* Background container — stacked in grid so the taller of video/content drives height. */
 .welcome-bg {
     grid-area: stack;
     width: 100%;
@@ -176,7 +168,6 @@ img {
     z-index: 1;
 }
 
-/* Welcome content — grid-stacked so content is never clipped. */
 .welcome-content {
     grid-area: stack;
     z-index: 2;
@@ -215,7 +206,6 @@ img {
     background-color: #b87a2e;
 }
 
-/* Gallery section. */
 .gallery-section {
     padding: 3rem 2rem;
 }
@@ -281,7 +271,6 @@ img {
     display: block;
 }
 
-/* Pagination controls. */
 .pagination {
     display: flex;
     justify-content: center;
@@ -321,7 +310,6 @@ img {
     color: var(--lake);
 }
 
-/* Services section. */
 .services-section {
     padding: 3rem 2rem;
     background-color: var(--lake);
@@ -387,7 +375,6 @@ img {
     font-weight: 400;
 }
 
-/* What's New section. */
 .whatsnew-section {
     padding: 3rem 2rem;
     background-color: var(--pine);
@@ -456,7 +443,6 @@ img {
     text-transform: uppercase;
 }
 
-/* About section. */
 .about-section {
     padding: 3rem 2rem;
     background-color: var(--lake);
@@ -489,7 +475,6 @@ img {
     color: var(--sunset);
 }
 
-/* Loading state. */
 .loading {
     text-align: center;
     padding: 2rem;
@@ -515,7 +500,6 @@ img {
     to { transform: rotate(360deg); }
 }
 
-/* Footer. */
 .site-footer {
     grid-area: footer;
     background-color: var(--pine);
@@ -553,7 +537,6 @@ img {
     color: var(--sunset);
 }
 
-/* Prevent horizontal scrolling on narrow viewports. */
 .gallery-section,
 .services-section,
 .whatsnew-section,
@@ -562,7 +545,6 @@ img {
     overflow-x: clip;
 }
 
-/* Tablet (max-width: 992px). */
 @media (max-width: 992px) {
 
     .hamburger {
@@ -636,7 +618,6 @@ img {
     }
 }
 
-/* Mobile (max-width: 576px). */
 @media (max-width: 576px) {
 
     .nav-container {
@@ -652,7 +633,6 @@ img {
         line-height: 1.25;
     }
 
-    /* Keep grid overlay — content drives height, video covers as background. */
     .welcome {
         display: grid;
     }
@@ -762,7 +742,6 @@ img {
     }
 }
 
-/* Desktop: keep welcome content condensed to the left. */
 @media (min-width: 1200px) {
     .welcome-content {
         max-width: 720px;
@@ -771,7 +750,6 @@ img {
     }
 }
 
-/* ---- Lightbox overlay ---- */
 .lightbox-overlay {
     display: none;
     position: fixed;
@@ -786,7 +764,6 @@ img {
     display: flex;
 }
 
-/* Prev / Next navigation arrows */
 .lightbox-prev,
 .lightbox-next {
     position: absolute;
@@ -815,7 +792,6 @@ img {
     background: rgba(0, 0, 0, 0.8);
 }
 
-/* Flip container — holds the front (image) and back (details) card faces */
 .lightbox-flip-container {
     perspective: 1200px;
     width: 90vw;
@@ -834,7 +810,6 @@ img {
     transform: rotateY(180deg);
 }
 
-/* Front and back faces */
 .lightbox-front,
 .lightbox-back {
     backface-visibility: hidden;
@@ -858,7 +833,6 @@ img {
     padding: 2.5rem 2rem 2rem;
 }
 
-/* Lightbox image */
 .lightbox-img {
     width: 100%;
     max-height: 90vh;
@@ -866,7 +840,6 @@ img {
     display: block;
 }
 
-/* Lightbox video */
 .lightbox-video {
     width: 100%;
     max-height: 90vh;
@@ -875,7 +848,6 @@ img {
     background: #000;
 }
 
-/* Close button */
 .lightbox-close {
     position: absolute;
     top: 0.5rem;
@@ -900,7 +872,6 @@ img {
     background: rgba(0, 0, 0, 0.8);
 }
 
-/* Info button (top-right of the image, next to close) */
 .lightbox-info-btn {
     position: absolute;
     top: 0.5rem;
@@ -924,7 +895,6 @@ img {
     background: rgba(0, 0, 0, 0.8);
 }
 
-/* Details table on the back face */
 .lightbox-details h3 {
     font-size: 1.4rem;
     color: var(--sand);
@@ -951,7 +921,6 @@ img {
     width: 140px;
 }
 
-/* Mobile adjustments for lightbox */
 @media (max-width: 600px) {
     .lightbox-flip-container {
         width: 96vw;

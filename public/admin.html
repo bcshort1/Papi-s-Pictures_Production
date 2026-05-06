@@ -15,7 +15,6 @@
 <body>
     <div class="admin-layout">
 
-        <!-- Admin header with logo, title, and user controls. -->
         <header class="admin-header">
             <div class="header-left">
                 <img src="/assets/logos_and_thumbnails/logo-137x139.png" alt="Papi's Pictures Logo"
@@ -29,7 +28,6 @@
             </div>
         </header>
 
-        <!-- Navigation tabs to switch between Media, Galleries, What's New, and Services sections. -->
         <nav class="admin-tabs">
             <button class="tab-btn active" data-tab="media">Media</button>
             <button class="tab-btn" data-tab="galleries">Galleries</button>
@@ -39,10 +37,8 @@
             <button class="tab-btn" data-tab="query">Query Shell</button>
         </nav>
 
-        <!-- Main content area with tab panels. -->
         <main class="admin-main">
 
-            <!-- Media management section. -->
             <section id="media-section" class="tab-content active">
                 <div class="section-header">
                     <h2>Media</h2>
@@ -55,11 +51,7 @@
                 </div>
             </section>
 
-            <!-- Galleries management section. Two views: the list of galleries, and the manage-media
-                 view shown after clicking "Manage Media" on a gallery card. JS toggles the .active class
-                 on the inner .gallery-view-list / .gallery-view-manage panels. -->
             <section id="galleries-section" class="tab-content">
-                <!-- View 1: gallery list. -->
                 <div class="gallery-view gallery-view-list active" id="galleryViewList">
                     <div class="section-header">
                         <h2>Galleries</h2>
@@ -70,7 +62,6 @@
                     </div>
                 </div>
 
-                <!-- View 2: manage media inside a single gallery. -->
                 <div class="gallery-view gallery-view-manage" id="galleryViewManage">
                     <div class="section-header gallery-manage-header">
                         <button type="button" class="cancel-btn" id="galleryManageBackBtn">&#10094; Back to galleries</button>
@@ -78,7 +69,6 @@
                         <span id="galleryManageMeta" class="gallery-manage-meta"></span>
                     </div>
                     <div class="gallery-manage-grid">
-                        <!-- Left pane: media library, filterable. Each row has + button to add. -->
                         <div class="gallery-manage-pane">
                             <h3>Add media</h3>
                             <input type="search" class="gallery-manage-search" id="galleryManageSearch"
@@ -87,7 +77,6 @@
                                 <p class="loading-text">Loading media...</p>
                             </div>
                         </div>
-                        <!-- Right pane: members of this gallery, drag-reorder + remove buttons. -->
                         <div class="gallery-manage-pane">
                             <h3>Members</h3>
                             <p class="gallery-manage-hint">Drag to reorder. Click &#10005; to remove.</p>
@@ -99,7 +88,6 @@
                 </div>
             </section>
 
-            <!-- What's New management section. -->
             <section id="whats-new-section" class="tab-content">
                 <div class="section-header">
                     <h2>What's New Items</h2>
@@ -110,7 +98,6 @@
                 </div>
             </section>
 
-            <!-- Services & Licensing management section. -->
             <section id="services-section" class="tab-content">
                 <div class="section-header">
                     <h2>Services &amp; Licensing</h2>
@@ -121,7 +108,6 @@
                 </div>
             </section>
 
-            <!-- Database Schema viewer section. -->
             <section id="schema-section" class="tab-content">
                 <div class="section-header">
                     <h2>Database Schema</h2>
@@ -131,7 +117,6 @@
                 </div>
             </section>
 
-            <!-- Database Query Shell section. -->
             <section id="query-section" class="tab-content">
                 <div class="section-header">
                     <h2>Query Shell</h2>
@@ -204,7 +189,6 @@
 
         </main>
 
-        <!-- Modal overlay for add/edit forms. Hidden by default. -->
         <div id="modal" class="modal-overlay" style="display:none;">
             <div class="modal">
                 <div class="modal-header">

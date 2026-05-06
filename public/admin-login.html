@@ -38,9 +38,6 @@
     </div>
 
     <script>
-        //Posts to /api/admin/login, which rejects any non-admin credentials with a generic
-        //401. Admin-only flow — no register link because new admins are created by existing
-        //admins through the admin panel, not through public signup.
         document.getElementById('loginForm').addEventListener('submit', async function (event) {
             event.preventDefault();
             var errorDiv = document.getElementById('loginError');

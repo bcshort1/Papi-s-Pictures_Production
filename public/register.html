@@ -46,8 +46,6 @@
     </div>
 
     <script>
-        //Handle registration form submission. Posts username/password to /api/register and,
-        //on success, lands on / because new accounts are non-admin.
         document.getElementById('registerForm').addEventListener('submit', async function (event) {
             event.preventDefault();
             var errorDiv = document.getElementById('registerError');
@@ -57,7 +55,6 @@
             var password = document.getElementById('password').value;
             var confirmPassword = document.getElementById('confirmPassword').value;
 
-            //Client-side guard so the server never sees mismatched passwords.
             if (password !== confirmPassword) {
                 errorDiv.textContent = 'Passwords do not match';
                 errorDiv.style.display = 'block';
@@ -73,11 +70,8 @@
                 var data = await response.json();
 
                 if (response.ok && data.success) {
-                    //Public registration only ever creates non-admin accounts, so always
-                    //land on the homepage rather than the admin panel.
                     window.location.href = '/';
                 } else {
-                    //Display the error message returned by the server.
                     errorDiv.textContent = data.error || 'Registration failed';
                     errorDiv.style.display = 'block';
                 }
