@@ -29,7 +29,6 @@ function toRecentPicture(document) {
         iso: document.metadata ? document.metadata.iso || '' : '',
         focalLength: document.metadata ? document.metadata.focalLength || '' : '',
         lensModel: document.metadata ? document.metadata.lensModel || '' : '',
-        featured: document.featured || false,
         showInRecent: document.showInRecent || false
     };
 }

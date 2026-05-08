@@ -74,6 +74,37 @@ function getDroneTag(cameraMake) {
     return 'handheld';
 }
 
+function resolveVersionPath(media, version, dirs) {
+    if (!media || !dirs) return null;
+    const isVideo = media.mediaType === 'video';
+    const fullResDir = isVideo ? dirs.VIDEOS_FULL_RES_DIR : dirs.PHOTOS_FULL_RES_DIR;
+
+    if (version === 'thumbnail') {
+        return resolveMediaPath(media.thumbnailPath, dirs.THUMBNAILS_DIR);
+    }
+    if (version === 'display') {
+        return resolveMediaPath(media.displayResolutionPath, dirs.MEDIA_DISPLAY_DIR);
+    }
+    if (version === 'fullres') {
+        return resolveMediaPath(media.fullResolutionLogolessPath, fullResDir);
+    }
+    return null;
+}
+
+function versionFileNameOnDisk(media, version) {
+    if (!media) return null;
+    if (version === 'thumbnail') return media.thumbnailPath ? path.basename(media.thumbnailPath) : null;
+    if (version === 'display') return media.displayResolutionPath ? path.basename(media.displayResolutionPath) : null;
+    if (version === 'fullres') return media.fullResolutionLogolessPath ? path.basename(media.fullResolutionLogolessPath) : null;
+    return null;
+}
+
+function safeFolderName(title, capturedAt) {
+    const base = toFileNameBase(title);
+    const ts = toFileTimestamp(capturedAt);
+    return base + '_' + ts;
+}
+
 module.exports = {
     formatDate,
     toSlug,
@@ -82,6 +113,9 @@ module.exports = {
     buildMediaFileNames,
     renameFileIfExists,
     resolveMediaPath,
+    resolveVersionPath,
+    versionFileNameOnDisk,
+    safeFolderName,
     getSeasonTag,
     getDroneTag
 };

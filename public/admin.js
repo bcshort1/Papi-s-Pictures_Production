@@ -85,7 +85,6 @@ function initSortable(gridId, apiPath) {
         document.getElementById('adminAccountType').textContent = data.accountType;
         loadWhatsNew();
         loadServices();
-        loadMedia();
     } catch (error) {
         window.location.href = '/login';
     }
@@ -1208,111 +1207,9 @@ function createGalleryInput(initialGalleries) {
     return container;
 }
 
-async function loadMedia() {
-    var grid = document.getElementById('mediaGrid');
-    try {
-        var response = await apiCall('/api/media');
-        var items = await response.json();
-        grid.innerHTML = '';
-
-        if (items.length === 0) {
-            grid.innerHTML = '<p class="loading-text">No media found. Click "+ Upload Media" to add some.</p>';
-            return;
-        }
-
-        for (let index = 0; index < items.length; index++) {
-            let item = items[index];
-            let card = document.createElement('div');
-            card.className = 'item-card media-card';
-            card.setAttribute('data-id', item._id);
-
-            var thumbFile = item.thumbnailPath ? item.thumbnailPath.split('/').pop() : '';
-            var thumbRoute = '/thumbnails/';
-            if (!thumbFile) {
-                thumbFile = item.displayResolutionPath ? item.displayResolutionPath.split('/').pop() : '';
-                thumbRoute = '/media/';
-            }
-            var isVideo = item.mediaType === 'video';
-
-            var thumbnailHtml = '';
-            if (thumbFile) {
-                thumbnailHtml = '<img class="media-card-thumb" src="' + thumbRoute + encodeURIComponent(thumbFile) + '" alt="' + escapeHtml(item.alt || item.title) + '">';
-            }
-
-            var galleryBadges = '';
-            if (item.galleries && item.galleries.length) {
-                for (const g of item.galleries) {
-                    galleryBadges += '<span class="gallery-badge">' + escapeHtml(g.galleryName) + '</span>';
-                }
-            }
-
-            var tagBadges = '';
-            if (item.tags && item.tags.length) {
-                for (const t of item.tags) {
-                    tagBadges += '<span class="tag-badge">' + escapeHtml(t) + '</span>';
-                }
-            }
-
-            var warnings = [];
-            if (!item.description) warnings.push('description');
-            if (!item.alt) warnings.push('alt');
-            if (!item.galleries || item.galleries.length === 0) warnings.push('galleries');
-            var warningHtml = '';
-            if (warnings.length > 0) {
-                warningHtml = '<div class="media-card-warning">Missing: ' + escapeHtml(warnings.join(', ')) + '</div>';
-            }
-
-            card.innerHTML =
-                '<div class="card-reorder-bar">' +
-                '<span class="drag-handle" title="Drag to reorder">&#9776;</span>' +
-                '<div class="move-buttons">' +
-                '<button class="move-btn move-up-btn" title="Move up">&#9650;</button>' +
-                '<button class="move-btn move-down-btn" title="Move down">&#9660;</button>' +
-                '</div>' +
-                '</div>' +
-                (thumbnailHtml ? '<div class="media-card-thumb-wrap">' + thumbnailHtml + '</div>' : '') +
-                '<div class="card-ids">' +
-                '<span class="id-badge"><strong>_id:</strong> ' + escapeHtml(item._id) + '</span>' +
-                '<span class="id-badge media-type-badge ' + (isVideo ? 'video-badge' : 'photo-badge') + '">' + escapeHtml(item.mediaType || 'photo') + '</span>' +
-                '</div>' +
-                warningHtml +
-                '<h3>' + escapeHtml(item.title || 'Untitled') + '</h3>' +
-                '<p class="card-description">' + escapeHtml(item.description || '') + '</p>' +
-                '<div class="card-meta">' +
-                '<span class="meta-status ' + (item.display ? 'active' : 'inactive') + '">' +
-                (item.display ? 'Visible' : 'Hidden') + '</span>' +
-                '<span class="meta-status ' + (item.showOnHomepage ? 'active' : 'inactive') + '">' +
-                (item.showOnHomepage ? 'Homepage' : 'Not on homepage') + '</span>' +
-                (item.showInRecent ? '<span class="meta-status active">Recent</span>' : '') +
-                (item.featured ? '<span class="meta-status active">Featured</span>' : '') +
-                '<span class="meta-sort">Sort: ' + (index + 1) + '</span>' +
-                '</div>' +
-                (galleryBadges ? '<div class="media-card-galleries">' + galleryBadges + '</div>' : '') +
-                (tagBadges ? '<div class="media-card-tags">' + tagBadges + '</div>' : '') +
-                '<div class="card-actions">' +
-                '<button class="edit-btn">Edit</button>' +
-                '<button class="delete-btn">Delete</button>' +
-                '</div>';
-
-            card.querySelector('.move-up-btn').addEventListener('click', function () {
-                moveCard(card, 'up', 'mediaGrid', 'media');
-            });
-            card.querySelector('.move-down-btn').addEventListener('click', function () {
-                moveCard(card, 'down', 'mediaGrid', 'media');
-            });
-            card.querySelector('.edit-btn').addEventListener('click', function () {
-                editMedia(item);
-            });
-            card.querySelector('.delete-btn').addEventListener('click', function () {
-                deleteMedia(item._id, item.title);
-            });
-
-            grid.appendChild(card);
-        }
-
-        initSortable('mediaGrid', 'media');
-    } catch (error) {
-        grid.innerHTML = '<p class="loading-text">Failed to load media.</p>';
+function loadMedia() {
+    if (window.AdminArchive && typeof window.AdminArchive.refresh === 'function') {
+        window.AdminArchive.refresh();
     }
 }
 
@@ -1369,9 +1266,7 @@ async function editMedia(item) {
     modalFields.appendChild(createField('Country', 'location-country', 'text', item.location ? item.location.country : '', false));
 
     modalFields.appendChild(createField('Visible', 'display', 'checkbox', item.display, false));
-    modalFields.appendChild(createField('Show on Homepage', 'showOnHomepage', 'checkbox', item.showOnHomepage, false));
     modalFields.appendChild(createField('Show in Recent', 'showInRecent', 'checkbox', item.showInRecent, false));
-    modalFields.appendChild(createField('Featured', 'featured', 'checkbox', item.featured, false));
 
     openModal('Edit Media — ' + escapeHtml(item.title || 'Untitled'));
 }
@@ -1781,9 +1676,7 @@ function runBatchEntry(uploadResults) {
             modalFields.appendChild(createField('Country', 'location-country', 'text', saved && saved.location ? saved.location.country : '', false));
 
             modalFields.appendChild(createField('Visible', 'display', 'checkbox', saved ? saved.display : true, false));
-            modalFields.appendChild(createField('Show on Homepage', 'showOnHomepage', 'checkbox', saved ? saved.showOnHomepage : true, false));
             modalFields.appendChild(createField('Show in Recent', 'showInRecent', 'checkbox', saved ? saved.showInRecent : true, false));
-            modalFields.appendChild(createField('Featured', 'featured', 'checkbox', saved ? saved.featured : false, false));
 
             var backBtn = document.getElementById('modalBackBtn');
             if (backBtn) {

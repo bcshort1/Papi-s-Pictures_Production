@@ -22,7 +22,7 @@ const {
 } = require('../services/mediaService');
 
 const getAllMedia = asyncHandler(async function (req, res) {
-    const items = await Media.find({}).sort({ homepageSortOrder: 1 }).lean();
+    const items = await Media.find({}).sort({ capturedAt: -1 }).lean();
     res.json(items);
 });
 
@@ -53,9 +53,6 @@ const uploadMedia = asyncHandler(async function (req, res) {
         const ext = path.extname(originalName);
         const nameWithoutExt = path.basename(originalName, ext);
         const title = nameWithoutExt.replace(/_/g, ' ');
-
-        const maxSortDoc = await Media.find({}).sort({ homepageSortOrder: -1 }).limit(1).lean();
-        const nextSortOrder = (maxSortDoc.length > 0 && maxSortDoc[0].homepageSortOrder ? maxSortDoc[0].homepageSortOrder : 0) + 1;
 
         let metadata = {
             imageWidthPixels: null,
@@ -188,10 +185,7 @@ const uploadMedia = asyncHandler(async function (req, res) {
                 galleries: [],
                 tags: autoTags,
                 display: true,
-                showOnHomepage: true,
-                homepageSortOrder: nextSortOrder,
                 showInRecent: true,
-                featured: false,
                 capturedAt: capturedAt ? new Date(capturedAt) : null,
                 ingestedAt: new Date(),
                 location: locationFromExif,
@@ -254,10 +248,7 @@ const uploadMedia = asyncHandler(async function (req, res) {
                 galleries: [],
                 tags: autoTags,
                 display: true,
-                showOnHomepage: true,
-                homepageSortOrder: nextSortOrder,
                 showInRecent: true,
-                featured: false,
                 capturedAt: capturedAt ? new Date(capturedAt) : null,
                 ingestedAt: new Date(),
                 location: { city: '', state: '', country: '' },
@@ -295,10 +286,7 @@ const updateMedia = asyncHandler(async function (req, res) {
     if (body.tags !== undefined) update.tags = Array.isArray(body.tags) ? body.tags.map(String) : [];
     if (body.galleries !== undefined) update.galleries = Array.isArray(body.galleries) ? body.galleries : [];
     if (body.display !== undefined) update.display = Boolean(body.display);
-    if (body.showOnHomepage !== undefined) update.showOnHomepage = Boolean(body.showOnHomepage);
     if (body.showInRecent !== undefined) update.showInRecent = Boolean(body.showInRecent);
-    if (body.featured !== undefined) update.featured = Boolean(body.featured);
-    if (body.homepageSortOrder !== undefined) update.homepageSortOrder = Number(body.homepageSortOrder);
     if (body.location !== undefined) {
         update.location = {
             city: String(body.location.city || ''),
@@ -378,25 +366,6 @@ const deleteMedia = asyncHandler(async function (req, res) {
 
     await Media.findByIdAndDelete(req.params.id);
     res.json({ success: true });
-});
-
-const reorderMedia = asyncHandler(async function (req, res) {
-    const ids = req.body.ids;
-    if (!Array.isArray(ids) || ids.length === 0) {
-        res.status(400).json({ error: 'ids array is required' });
-        return;
-    }
-    const bulkOperations = ids.map(function (id, index) {
-        return {
-            updateOne: {
-                filter: { _id: id },
-                update: { $set: { homepageSortOrder: index + 1, updatedAt: new Date() } }
-            }
-        };
-    });
-    await Media.bulkWrite(bulkOperations);
-    const items = await Media.find({}).sort({ homepageSortOrder: 1 }).lean();
-    res.json(items);
 });
 
 const uploadChunk = asyncHandler(async function (req, res) {
@@ -481,9 +450,6 @@ const finalizeUpload = asyncHandler(async function (req, res) {
     const ext = path.extname(originalName);
     const nameWithoutExt = path.basename(originalName, ext);
     const title = nameWithoutExt.replace(/_/g, ' ');
-
-    const maxSortDoc = await Media.find({}).sort({ homepageSortOrder: -1 }).limit(1).lean();
-    const nextSortOrder = (maxSortDoc.length > 0 && maxSortDoc[0].homepageSortOrder ? maxSortDoc[0].homepageSortOrder : 0) + 1;
 
     let metadata = {
         imageWidthPixels: null, imageHeightPixels: null, aspectRatio: null,
@@ -582,8 +548,7 @@ const finalizeUpload = asyncHandler(async function (req, res) {
             displayResolutionPath: fileNames.displayName,
             thumbnailPath: fileNames.thumbName,
             creator: 'Scott Short', galleries: [], tags: autoTags,
-            display: true, showOnHomepage: true, homepageSortOrder: nextSortOrder,
-            showInRecent: true, featured: false,
+            display: true, showInRecent: true,
             capturedAt: capturedAt ? new Date(capturedAt) : null,
             ingestedAt: new Date(),
             location: locationFromExif,
@@ -640,8 +605,7 @@ const finalizeUpload = asyncHandler(async function (req, res) {
             displayResolutionPath: fileNames.displayName,
             thumbnailPath: fileNames.thumbName,
             creator: 'Scott Short', galleries: [], tags: autoTags,
-            display: true, showOnHomepage: true, homepageSortOrder: nextSortOrder,
-            showInRecent: true, featured: false,
+            display: true, showInRecent: true,
             capturedAt: capturedAt ? new Date(capturedAt) : null,
             ingestedAt: new Date(),
             location: { city: '', state: '', country: '' },
@@ -660,4 +624,97 @@ const finalizeUpload = asyncHandler(async function (req, res) {
     res.end(JSON.stringify(results));
 });
 
-module.exports = { getAllMedia, getMediaTags, uploadMedia, uploadChunk, finalizeUpload, updateMedia, deleteMedia, reorderMedia };
+const replaceFullRes = asyncHandler(async function (req, res) {
+    const id = req.params.id;
+    const existing = await Media.findById(id).lean();
+    if (!existing) {
+        return res.status(404).json({ error: 'Media not found' });
+    }
+
+    const uploaded = await parseMultipart(req);
+    const file = uploaded.files[0];
+    if (!file) {
+        return res.status(400).json({ error: 'No file uploaded. Submit a file under field name "media".' });
+    }
+
+    const isPhotoFile = file.mimeType.startsWith('image/');
+    const isVideoFile = file.mimeType.startsWith('video/');
+    if (!isPhotoFile && !isVideoFile) {
+        return res.status(400).json({ error: 'Unsupported file type: ' + file.mimeType });
+    }
+
+    const expectVideo = existing.mediaType === 'video';
+    if (expectVideo && !isVideoFile) {
+        return res.status(400).json({ error: 'Existing media is a video; the replacement must also be a video.' });
+    }
+    if (!expectVideo && !isPhotoFile) {
+        return res.status(400).json({ error: 'Existing media is a photo; the replacement must also be a photo.' });
+    }
+
+    const isVideo = expectVideo;
+    const fullResDir = isVideo ? VIDEOS_FULL_RES_DIR : PHOTOS_FULL_RES_DIR;
+
+    const oldFullResAbs = resolveMediaPath(existing.fullResolutionLogolessPath, fullResDir);
+    const oldDisplayAbs = resolveMediaPath(existing.displayResolutionPath, MEDIA_DISPLAY_DIR);
+    const oldThumbAbs = resolveMediaPath(existing.thumbnailPath, THUMBNAILS_DIR);
+
+    const fileNames = buildMediaFileNames(existing.title, existing.capturedAt, existing.mediaType);
+    const newFullResAbs = path.join(fullResDir, fileNames.ogName);
+    const newDisplayAbs = path.join(MEDIA_DISPLAY_DIR, fileNames.displayName);
+    const newThumbAbs = path.join(THUMBNAILS_DIR, fileNames.thumbName);
+
+    if (oldFullResAbs && oldFullResAbs !== newFullResAbs) {
+        try { fs.unlinkSync(oldFullResAbs); } catch (e) {  }
+    }
+    if (oldDisplayAbs && oldDisplayAbs !== newDisplayAbs) {
+        try { fs.unlinkSync(oldDisplayAbs); } catch (e) {  }
+    }
+    if (oldThumbAbs && oldThumbAbs !== newThumbAbs) {
+        try { fs.unlinkSync(oldThumbAbs); } catch (e) {  }
+    }
+
+    fs.writeFileSync(newFullResAbs, file.buffer);
+
+    const update = {
+        fullResolutionLogolessPath: fileNames.ogName,
+        displayResolutionPath: fileNames.displayName,
+        thumbnailPath: fileNames.thumbName,
+        fileName: fileNames.ogName
+    };
+
+    if (isVideo) {
+        try {
+            await createVideoDisplayCopy(newFullResAbs, newDisplayAbs);
+        } catch (videoError) {
+            console.error('Video replace display copy error:', videoError.message);
+            try { fs.copyFileSync(newFullResAbs, newDisplayAbs); } catch (e) {  }
+        }
+        try {
+            await createVideoThumbnail(newFullResAbs, newThumbAbs);
+        } catch (thumbError) {
+            console.error('Video replace thumbnail error:', thumbError.message);
+        }
+
+        const videoMeta = await extractVideoMetadata(newFullResAbs);
+        if (videoMeta.imageWidthPixels) update['metadata.imageWidthPixels'] = videoMeta.imageWidthPixels;
+        if (videoMeta.imageHeightPixels) update['metadata.imageHeightPixels'] = videoMeta.imageHeightPixels;
+        if (videoMeta.aspectRatio) update['metadata.aspectRatio'] = videoMeta.aspectRatio;
+    } else {
+        const displayBuffer = await createPhotoDisplayCopy(file.buffer);
+        fs.writeFileSync(newDisplayAbs, displayBuffer);
+        const thumbBuffer = await createPhotoThumbnail(file.buffer);
+        fs.writeFileSync(newThumbAbs, thumbBuffer);
+
+        const sharpMeta = await sharp(file.buffer).metadata();
+        if (sharpMeta.width) update['metadata.imageWidthPixels'] = sharpMeta.width;
+        if (sharpMeta.height) update['metadata.imageHeightPixels'] = sharpMeta.height;
+        if (sharpMeta.width && sharpMeta.height) {
+            update['metadata.aspectRatio'] = Math.round((sharpMeta.width / sharpMeta.height) * 10000) / 10000;
+        }
+    }
+
+    const result = await Media.findByIdAndUpdate(id, update, { returnDocument: 'after' }).lean();
+    res.json(result);
+});
+
+module.exports = { getAllMedia, getMediaTags, uploadMedia, uploadChunk, finalizeUpload, updateMedia, deleteMedia, replaceFullRes };

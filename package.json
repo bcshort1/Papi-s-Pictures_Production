@@ -9,6 +9,7 @@
     "seed": "dotenvx run -- node scripts/seed.js",
     "backup": "dotenvx run -- node scripts/autoBackup.js",
     "migrate-galleries": "dotenvx run -- node scripts/migrateGalleries.js",
+    "migrate-featured": "dotenvx run -- node scripts/migrateFeaturedToGallery.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -25,6 +26,7 @@
   "homepage": "https://github.com/bcshort1/Papi-s_Pictures#readme",
   "dependencies": {
     "@dotenvx/dotenvx": "^1.60.1",
+    "archiver": "^7.0.1",
     "bcrypt": "^6.0.0",
     "busboy": "^1.6.0",
     "cookie-parser": "^1.4.7",

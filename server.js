@@ -10,10 +10,12 @@ const errorHandler = require('./backend/middleware/errorHandler');
 const publicRoutes = require('./backend/routes/publicRoutes');
 const authRoutes = require('./backend/routes/authRoutes');
 const mediaRoutes = require('./backend/routes/mediaRoutes');
+const downloadRoutes = require('./backend/routes/downloadRoutes');
 const servicesRoutes = require('./backend/routes/servicesRoutes');
 const whatsNewRoutes = require('./backend/routes/whatsNewRoutes');
 const galleriesRoutes = require('./backend/routes/galleriesRoutes');
 const archiveRoutes = require('./backend/routes/archiveRoutes');
+const adminArchiveRoutes = require('./backend/routes/adminArchiveRoutes');
 
 const PORT = process.env.PORT || 3000;
 const JWT_SECRET = process.env.JWT_SECRET || 'papis_pictures_jwt_secret';
@@ -98,11 +100,13 @@ app.get('/admin', function (req, res) {
 
 app.use('/api', publicRoutes);
 app.use('/api', authRoutes);
+app.use('/api/media', downloadRoutes);
 app.use('/api/media', mediaRoutes);
 app.use('/api/services', servicesRoutes);
 app.use('/api/whats-new', whatsNewRoutes);
 app.use('/api/galleries', galleriesRoutes);
 app.use('/api/archive', archiveRoutes);
+app.use('/api/admin/archive', adminArchiveRoutes);
 
 const requireAuth = require('./backend/middleware/requireAuth');
 const Media = require('./backend/models/Media');

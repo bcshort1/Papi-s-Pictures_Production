@@ -7,9 +7,9 @@ const {
     uploadMedia,
     uploadChunk,
     finalizeUpload,
-    reorderMedia,
     updateMedia,
-    deleteMedia
+    deleteMedia,
+    replaceFullRes
 } = require('../controllers/mediaController');
 
 router.use(requireAuth);
@@ -36,7 +36,11 @@ router.post('/upload-finalize', function (req, res, next) {
     next();
 }, finalizeUpload);
 
-router.put('/reorder', reorderMedia);
+router.post('/:id/replace-fullres', function (req, res, next) {
+    req.setTimeout(600000);
+    res.setTimeout(600000);
+    next();
+}, replaceFullRes);
 
 router.put('/:id', updateMedia);
 

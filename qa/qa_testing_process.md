@@ -71,7 +71,7 @@ Create integration tests under `tests/integration/` that use `mongodb-memory-ser
 2. **`tests/integration/publicRoutes.test.js`** — Test public (unauthenticated) endpoints:
    - `GET /api` — returns combined public data (services, recent pictures, what's new)
    - `GET /api/recentPictures` — returns up to 30 items where `showInRecent` is true, sorted by `capturedAt`
-   - `GET /api/featuredGallery` — returns only items with `featured: true`
+   - `GET /api/featuredGallery` — returns only items that are members of the `featured` gallery, sorted by `galleryPosition`
    - Verify responses do NOT include admin-only fields
 
 3. **`tests/integration/media.test.js`** — Test media CRUD behind auth:
@@ -79,18 +79,33 @@ Create integration tests under `tests/integration/` that use `mongodb-memory-ser
    - `GET /api/media` — returns all media for admin
    - `GET /api/media/tags` — returns distinct tag list
    - `PUT /api/media/:id` — updates fields, verify slug uniqueness constraint (409 on duplicate)
-   - `PUT /api/media/reorder` — bulk reorder updates positions correctly
    - `DELETE /api/media/:id` — removes document and associated files (mock fs for file cleanup)
+   - `POST /api/media/:id/replace-fullres` — accepts a multipart upload, regenerates display + thumbnail, refuses mismatched media types (e.g. uploading a video to replace a photo)
 
-4. **`tests/integration/services.test.js`** — Test services CRUD behind auth:
+4. **`tests/integration/adminArchive.test.js`** — Test admin archive endpoints behind auth:
+   - All routes require authentication — return 401 without session
+   - `GET /api/admin/archive` — returns matching media including hidden (`display:false`) items
+   - Filtering by `q`, `mediaType`, `visibility=hidden`, `tags`, `from`/`to`, `gallery`, `cameraModel`, `city`, `state`, `country` returns expected subsets
+   - Sorting by `newest`, `oldest`, `recent`, `title-az`, `title-za`, and `random` works
+   - Pagination (`page`, `limit`) and `totalPages` are accurate
+   - `GET /api/admin/archive/facets` — returns sorted, deduplicated lists for `tags`, `cities`, `states`, `countries`, `cameraModels`, and `galleries` (including hidden galleries)
+
+5. **`tests/integration/downloads.test.js`** — Test download endpoints behind auth:
+   - All routes require authentication — return 401 without session
+   - `GET /api/media/:id/download/:version` — streams the correct file (mock fs to avoid touching real disk)
+   - `GET /api/media/:id/download/invalid` — returns 400 (bad version)
+   - `GET /api/media/:id/download-zip?versions=thumbnail,display,fullres` — sets `Content-Type: application/zip`, attachment Content-Disposition, includes only requested versions
+   - `POST /api/media/download-batch` — body `{ items: [{ id, versions }] }` produces a multi-folder zip; rejects empty/invalid bodies; tolerates missing files by appending a `MANIFEST.txt`
+
+6. **`tests/integration/services.test.js`** — Test services CRUD behind auth:
    - Full CRUD lifecycle: create, read, update, delete
    - Authentication enforcement on all endpoints
 
-5. **`tests/integration/whatsNew.test.js`** — Test what's new CRUD behind auth:
+7. **`tests/integration/whatsNew.test.js`** — Test what's new CRUD behind auth:
    - Full CRUD lifecycle
    - Authentication enforcement on all endpoints
 
-6. **`tests/integration/schema.test.js`** — Test `GET /api/schema`:
+8. **`tests/integration/schema.test.js`** — Test `GET /api/schema`:
    - Returns schema definitions and document counts when authenticated
    - Returns 401 when not authenticated
 
@@ -101,14 +116,16 @@ Create integration tests under `tests/integration/` that use `mongodb-memory-ser
 Create system tests under `tests/system/` that test complete user workflows from start to finish using `supertest` with cookie persistence (agent sessions). These simulate real user scenarios.
 
 1. **`tests/system/adminWorkflow.test.js`**:
-   - Login → upload media → verify it appears in admin list → edit metadata → reorder → delete → logout
+   - Login → upload media → verify it appears in admin archive → edit metadata via drawer → replace full-res file → delete → logout
+   - Login → search/filter the admin archive (text search, gallery, hidden-only) → multi-select 2 items → batch download with mixed per-item versions → confirm zip is returned
    - Login → create service → update service → verify it appears in public API → delete → logout
    - Login → create what's new entry → verify it appears in public API → delete → logout
 
 2. **`tests/system/portfolioWorkflow.test.js`**:
    - Unauthenticated user fetches public data → recent pictures → featured gallery
-   - Verify homepage media is sorted by `homepageSortOrder`
-   - Verify media with `display: false` does NOT appear in public endpoints
+   - Verify recent media is sorted by `capturedAt` desc (most recent first)
+   - Verify featured media is sorted by `galleryPosition` within the `featured` gallery
+   - Verify media with `display: false` does NOT appear in public endpoints (including hidden items shown in admin archive)
 
 3. **`tests/system/authGuard.test.js`**:
    - Attempt all admin endpoints without login → all return 401
@@ -131,7 +148,20 @@ Verify each feature works according to its requirements. Add these as additional
 2. **Gallery Management**:
    - Media can belong to multiple galleries
    - Reordering updates `galleryPosition` correctly within each gallery
-   - Homepage sort order is independent of gallery position
+   - The homepage Featured section reads from the `featured` gallery (slug) and respects `galleryPosition`
+   - Reordering members of the Featured gallery via the Galleries tab changes the homepage Featured order
+
+3. **Admin Archive Page**:
+   - Sidebar search/sort/filter controls fetch results from `/api/admin/archive`
+   - Hidden items appear with a "Hidden" badge
+   - Per-card download menu: Single-version downloads issue a GET to `/api/media/:id/download/:version`; "All as zip" issues a GET to `/api/media/:id/download-zip`
+   - Multi-select bulk-action bar: choosing per-item versions via the Customize panel produces a batch zip with per-item subfolders
+   - Edit drawer: Saving metadata triggers `PUT /api/media/:id`; Replace full-res posts a multipart upload to `/api/media/:id/replace-fullres` and re-renders display/thumbnail
+
+4. **File Replacement Pipeline**:
+   - Replacing a photo regenerates the watermarked display PNG and JPG thumbnail
+   - Replacing a video regenerates the transcoded display MP4 and JPG thumbnail
+   - Mismatched media type (e.g. uploading a video into a photo's slot) returns 400
 
 3. **Session Management**:
    - Session persists across multiple requests (cookie-based)
@@ -169,7 +199,9 @@ Create tests under `tests/non-functional/`:
 Create `tests/regression/` with tests that specifically guard against re-introducing past bugs or breaking changes:
 
 1. **`tests/regression/routeOrder.test.js`**:
-   - `PUT /api/media/reorder` is matched before `PUT /api/media/:id` (route ordering matters)
+   - `POST /api/media/download-batch` is matched before any `/:id` route (the download router is mounted before the media router)
+   - `GET /api/media/:id/download/:version` is matched correctly (multi-segment GET)
+   - `POST /api/media/:id/replace-fullres` is matched before `PUT /:id` would attempt to interpret `replace-fullres` as a body field
    - `GET /api/session` is not intercepted by `publicRoutes` since both mount at `/api`
 
 2. **`tests/regression/errorHandling.test.js`**:
@@ -203,6 +235,8 @@ integration/
 auth.test.js
 publicRoutes.test.js
 media.test.js
+adminArchive.test.js
+downloads.test.js
 services.test.js
 whatsNew.test.js
 schema.test.js

@@ -19,10 +19,7 @@ const mediaSchema = new mongoose.Schema({
   }],
   tags: [String],
   display: Boolean,
-  showOnHomepage: Boolean,
-  homepageSortOrder: Number,
   showInRecent: Boolean,
-  featured: Boolean,
   capturedAt: Date,
   ingestedAt: Date,
   location: {

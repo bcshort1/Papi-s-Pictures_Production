@@ -41,13 +41,145 @@
 
             <section id="media-section" class="tab-content active">
                 <div class="section-header">
-                    <h2>Media</h2>
+                    <h2>Media Archive</h2>
                     <button class="add-btn" id="uploadMediaBtn">+ Upload Media</button>
                     <input type="file" id="mediaFileInput" multiple accept="image/*,video/*" style="display:none;">
                 </div>
                 <div id="uploadProgressArea" class="upload-progress-area" style="display:none;"></div>
-                <div class="items-grid" id="mediaGrid">
-                    <p class="loading-text">Loading media...</p>
+
+                <div class="admin-archive-layout">
+
+                    <aside class="admin-archive-sidebar" aria-label="Search and filter controls">
+
+                        <div class="sidebar-card">
+                            <label for="adminArchiveSearch" class="sidebar-label">Search</label>
+                            <input type="search" id="adminArchiveSearch" placeholder="Title, tag, file name, location..." autocomplete="off">
+                        </div>
+
+                        <div class="sidebar-card">
+                            <label for="adminArchiveSort" class="sidebar-label">Sort by</label>
+                            <select id="adminArchiveSort">
+                                <option value="newest">Newest captured first</option>
+                                <option value="oldest">Oldest captured first</option>
+                                <option value="recent">Recently added</option>
+                                <option value="title-az">Title A-Z</option>
+                                <option value="title-za">Title Z-A</option>
+                                <option value="random">Random / Shuffle</option>
+                            </select>
+                        </div>
+
+                        <div class="sidebar-card sidebar-filters">
+                            <span class="sidebar-label">Filters</span>
+
+                            <details open class="filter-group">
+                                <summary>Visibility</summary>
+                                <div class="filter-body">
+                                    <label class="filter-radio"><input type="radio" name="adminVisibility" value="all" checked> All</label>
+                                    <label class="filter-radio"><input type="radio" name="adminVisibility" value="visible"> Visible only</label>
+                                    <label class="filter-radio"><input type="radio" name="adminVisibility" value="hidden"> Hidden only</label>
+                                </div>
+                            </details>
+
+                            <details class="filter-group">
+                                <summary>Media Type</summary>
+                                <div class="filter-body">
+                                    <label class="filter-radio"><input type="radio" name="adminMediaType" value="all" checked> All</label>
+                                    <label class="filter-radio"><input type="radio" name="adminMediaType" value="photo"> Photos</label>
+                                    <label class="filter-radio"><input type="radio" name="adminMediaType" value="video"> Videos</label>
+                                </div>
+                            </details>
+
+                            <details class="filter-group">
+                                <summary>Tags</summary>
+                                <div class="filter-body" id="adminTagList">
+                                    <p class="filter-empty">Loading tags...</p>
+                                </div>
+                            </details>
+
+                            <details class="filter-group">
+                                <summary>Capture Date</summary>
+                                <div class="filter-body">
+                                    <label class="filter-field"><span>From</span><input type="date" id="adminDateFrom"></label>
+                                    <label class="filter-field"><span>To</span><input type="date" id="adminDateTo"></label>
+                                </div>
+                            </details>
+
+                            <details class="filter-group">
+                                <summary>Location</summary>
+                                <div class="filter-body">
+                                    <label class="filter-field"><span>City</span><select id="adminCityFilter"><option value="">Any</option></select></label>
+                                    <label class="filter-field"><span>State / Region</span><select id="adminStateFilter"><option value="">Any</option></select></label>
+                                    <label class="filter-field"><span>Country</span><select id="adminCountryFilter"><option value="">Any</option></select></label>
+                                </div>
+                            </details>
+
+                            <details class="filter-group">
+                                <summary>Camera</summary>
+                                <div class="filter-body">
+                                    <label class="filter-field"><span>Model</span><select id="adminCameraFilter"><option value="">Any</option></select></label>
+                                </div>
+                            </details>
+
+                            <details class="filter-group">
+                                <summary>Gallery</summary>
+                                <div class="filter-body">
+                                    <label class="filter-field"><span>Member of</span><select id="adminGalleryFilter"><option value="">Any</option></select></label>
+                                </div>
+                            </details>
+
+                            <button type="button" id="adminResetFilters" class="reset-btn">Reset all filters</button>
+                        </div>
+
+                    </aside>
+
+                    <div class="admin-archive-main">
+                        <div class="admin-archive-toolbar">
+                            <div class="admin-archive-results-meta" id="adminArchiveMeta" aria-live="polite"></div>
+                            <div class="admin-archive-select-actions">
+                                <button type="button" class="select-toggle-btn" id="adminSelectAllBtn">Select all on page</button>
+                                <button type="button" class="select-toggle-btn" id="adminClearSelectionBtn">Clear selection</button>
+                            </div>
+                        </div>
+
+                        <div id="adminBulkBar" class="admin-bulk-bar" style="display:none;">
+                            <div class="admin-bulk-bar-summary" id="adminBulkBarSummary">0 selected</div>
+                            <div class="admin-bulk-bar-versions">
+                                <span class="bulk-bar-label">Versions:</span>
+                                <label><input type="checkbox" name="bulkVersion" value="thumbnail" checked> Thumbnail</label>
+                                <label><input type="checkbox" name="bulkVersion" value="display" checked> Display</label>
+                                <label><input type="checkbox" name="bulkVersion" value="fullres" checked> Full-res</label>
+                            </div>
+                            <div class="admin-bulk-bar-actions">
+                                <button type="button" class="bulk-customize-btn" id="adminCustomizeBtn">Customize per item</button>
+                                <button type="button" class="bulk-download-btn" id="adminBulkDownloadBtn">Download selected as zip</button>
+                            </div>
+                        </div>
+
+                        <div id="adminCustomizePanel" class="admin-customize-panel" style="display:none;">
+                            <div class="admin-customize-panel-header">
+                                <h3>Customize versions per item</h3>
+                                <button type="button" class="customize-close-btn" id="adminCustomizeCloseBtn">&times;</button>
+                            </div>
+                            <div class="admin-customize-panel-body" id="adminCustomizeList">
+                                <p class="loading-text">No items selected.</p>
+                            </div>
+                        </div>
+
+                        <div class="items-grid admin-archive-grid" id="mediaGrid">
+                            <p class="loading-text">Loading media...</p>
+                        </div>
+
+                        <div class="pagination" id="adminArchivePagination" style="display:none;">
+                            <button class="pagination-btn" id="adminArchivePrev" aria-label="Previous page">&#10094; Previous</button>
+                            <span class="pagination-info" id="adminArchivePageInfo"></span>
+                            <button class="pagination-btn" id="adminArchiveNext" aria-label="Next page">Next &#10095;</button>
+                        </div>
+
+                        <div class="archive-shuffle" id="adminArchiveShuffle" style="display:none;">
+                            <button class="pagination-btn" id="adminArchiveReshuffle">Show me different</button>
+                        </div>
+                    </div>
+
                 </div>
             </section>
 
@@ -206,10 +338,38 @@
             </div>
         </div>
 
+        <div id="mediaDrawer" class="media-drawer-overlay" style="display:none;">
+            <div class="media-drawer">
+                <div class="media-drawer-preview">
+                    <button type="button" class="media-drawer-close" id="mediaDrawerCloseBtn" aria-label="Close">&times;</button>
+                    <div class="media-drawer-preview-body" id="mediaDrawerPreviewBody"></div>
+                    <div class="media-drawer-preview-meta" id="mediaDrawerPreviewMeta"></div>
+                </div>
+                <div class="media-drawer-panel">
+                    <div class="media-drawer-tabs">
+                        <button type="button" class="drawer-tab-btn active" data-drawer-tab="details">Details</button>
+                        <button type="button" class="drawer-tab-btn" data-drawer-tab="metadata">Metadata</button>
+                        <button type="button" class="drawer-tab-btn" data-drawer-tab="files">Files</button>
+                    </div>
+                    <form id="mediaDrawerForm" class="media-drawer-form">
+                        <div class="media-drawer-tab-content active" data-drawer-tab-content="details" id="mediaDrawerDetails"></div>
+                        <div class="media-drawer-tab-content" data-drawer-tab-content="metadata" id="mediaDrawerMetadata"></div>
+                        <div class="media-drawer-tab-content" data-drawer-tab-content="files" id="mediaDrawerFiles"></div>
+                        <div class="media-drawer-footer">
+                            <button type="button" class="cancel-btn" id="mediaDrawerCancelBtn">Cancel</button>
+                            <button type="submit" class="save-btn">Save</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
     </div>
 
     <script src="/vendor/Sortable.min.js"></script>
-    <script src="/admin.js?v=10"></script>
+    <script src="/admin.js?v=11"></script>
+    <script src="/admin-drawer.js?v=1"></script>
+    <script src="/admin-archive.js?v=1"></script>
 </body>
 
 </html>
