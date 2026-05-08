@@ -34,6 +34,23 @@ function setText(element, tag, text) {
     return child;
 }
 
+function getPreferredScrollBehavior() {
+    var reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var touchLike = window.matchMedia('(pointer: coarse)').matches || window.matchMedia('(hover: none)').matches;
+    if (reducedMotion || touchLike || window.innerWidth <= 992) {
+        return 'auto';
+    }
+    return 'smooth';
+}
+
+function scrollToSectionTop(section) {
+    if (!section) return;
+    var header = document.querySelector('.site-header');
+    var headerHeight = header ? header.offsetHeight : 0;
+    var sectionTop = section.getBoundingClientRect().top + window.scrollY - headerHeight;
+    window.scrollTo({ top: Math.max(0, sectionTop), behavior: getPreferredScrollBehavior() });
+}
+
 const galleryGrid = document.getElementById('galleryGrid');
 var featuredGrid = document.getElementById('featuredGrid');
 
@@ -166,10 +183,8 @@ document.getElementById('recentPrev').addEventListener('click', function () {
     if (recentPage > 1) {
         recentPage--;
         var section = document.getElementById('gallery');
-        var headerHeight = document.querySelector('.site-header').offsetHeight;
-        var sectionTop = section.getBoundingClientRect().top + window.scrollY - headerHeight;
         renderRecentPage();
-        window.scrollTo({ top: sectionTop, behavior: 'smooth' });
+        scrollToSectionTop(section);
     }
 });
 
@@ -178,10 +193,8 @@ document.getElementById('recentNext').addEventListener('click', function () {
     if (recentPage < totalPages) {
         recentPage++;
         var section = document.getElementById('gallery');
-        var headerHeight = document.querySelector('.site-header').offsetHeight;
-        var sectionTop = section.getBoundingClientRect().top + window.scrollY - headerHeight;
         renderRecentPage();
-        window.scrollTo({ top: sectionTop, behavior: 'smooth' });
+        scrollToSectionTop(section);
     }
 });
 
@@ -218,10 +231,8 @@ document.getElementById('featuredPrev').addEventListener('click', function () {
     if (featuredPage > 1) {
         featuredPage--;
         var section = document.getElementById('featuredGallery');
-        var headerHeight = document.querySelector('.site-header').offsetHeight;
-        var sectionTop = section.getBoundingClientRect().top + window.scrollY - headerHeight;
         renderFeaturedPage();
-        window.scrollTo({ top: sectionTop, behavior: 'smooth' });
+        scrollToSectionTop(section);
     }
 });
 
@@ -230,10 +241,8 @@ document.getElementById('featuredNext').addEventListener('click', function () {
     if (featuredPage < totalPages) {
         featuredPage++;
         var section = document.getElementById('featuredGallery');
-        var headerHeight = document.querySelector('.site-header').offsetHeight;
-        var sectionTop = section.getBoundingClientRect().top + window.scrollY - headerHeight;
         renderFeaturedPage();
-        window.scrollTo({ top: sectionTop, behavior: 'smooth' });
+        scrollToSectionTop(section);
     }
 });
 

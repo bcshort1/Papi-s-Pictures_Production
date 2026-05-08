@@ -18,7 +18,13 @@
 }
 
 html {
-    scroll-behavior: smooth;
+    scroll-behavior: auto;
+}
+
+@media (prefers-reduced-motion: no-preference) and (hover: hover) and (pointer: fine) {
+    html {
+        scroll-behavior: smooth;
+    }
 }
 
 body {

@@ -62,6 +62,15 @@ var currentItems = [];
 var pendingTagSelection = [];
 var currentTotalPages = 1;
 
+function getPreferredScrollBehavior() {
+    var reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var touchLike = window.matchMedia('(pointer: coarse)').matches || window.matchMedia('(hover: none)').matches;
+    if (reducedMotion || touchLike || window.innerWidth <= 992) {
+        return 'auto';
+    }
+    return 'smooth';
+}
+
 function parseHashState() {
     if (!window.location.hash) return;
     var raw = window.location.hash.replace(/^#/, '');
@@ -366,9 +375,10 @@ for (var r = 0; r < typeRadios.length; r++) {
 function scrollToResults() {
     var section = document.querySelector('.archive-section');
     if (!section) return;
-    var headerHeight = document.querySelector('.site-header').offsetHeight;
+    var header = document.querySelector('.site-header');
+    var headerHeight = header ? header.offsetHeight : 0;
     var top = section.getBoundingClientRect().top + window.scrollY - headerHeight;
-    window.scrollTo({ top: top, behavior: 'smooth' });
+    window.scrollTo({ top: Math.max(0, top), behavior: getPreferredScrollBehavior() });
 }
 
 archivePrev.addEventListener('click', function () {

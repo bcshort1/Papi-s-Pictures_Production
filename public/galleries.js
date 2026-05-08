@@ -27,6 +27,27 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
+function getPreferredScrollBehavior() {
+    var reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var touchLike = window.matchMedia('(pointer: coarse)').matches || window.matchMedia('(hover: none)').matches;
+    if (reducedMotion || touchLike || window.innerWidth <= 992) {
+        return 'auto';
+    }
+    return 'smooth';
+}
+
+function scrollToSectionTop(section) {
+    if (!section) return;
+    var header = document.querySelector('.site-header');
+    var headerHeight = header ? header.offsetHeight : 0;
+    var sectionTop = section.getBoundingClientRect().top + window.scrollY - headerHeight;
+    window.scrollTo({ top: Math.max(0, sectionTop), behavior: getPreferredScrollBehavior() });
+}
+
+function scrollToPageTop() {
+    window.scrollTo({ top: 0, behavior: getPreferredScrollBehavior() });
+}
+
 const galleryListGrid = document.getElementById('galleryListGrid');
 const galleryListSection = document.getElementById('galleryListSection');
 const galleryDetailSection = document.getElementById('galleryDetailSection');
@@ -156,9 +177,7 @@ async function selectGallery(gallery) {
     detailPage = 1;
     galleryDetailGrid.innerHTML = '<p class="loading" style="grid-column:1/-1;">Loading gallery...</p>';
     galleryDetailPagination.style.display = 'none';
-    var headerHeight = document.querySelector('.site-header').offsetHeight;
-    var sectionTop = galleryDetailSection.getBoundingClientRect().top + window.scrollY - headerHeight;
-    window.scrollTo({ top: sectionTop, behavior: 'smooth' });
+    scrollToSectionTop(galleryDetailSection);
 
     try {
         var response = await fetch('/api/galleries/' + encodeURIComponent(gallery.slug) + '/media');
@@ -214,20 +233,16 @@ function renderDetailPage() {
 galleryDetailPrev.addEventListener('click', function () {
     if (detailPage > 1) {
         detailPage--;
-        var headerHeight = document.querySelector('.site-header').offsetHeight;
-        var sectionTop = galleryDetailSection.getBoundingClientRect().top + window.scrollY - headerHeight;
         renderDetailPage();
-        window.scrollTo({ top: sectionTop, behavior: 'smooth' });
+        scrollToSectionTop(galleryDetailSection);
     }
 });
 galleryDetailNext.addEventListener('click', function () {
     var totalPages = Math.ceil(detailRows.length / DETAIL_ROWS_PER_PAGE);
     if (detailPage < totalPages) {
         detailPage++;
-        var headerHeight = document.querySelector('.site-header').offsetHeight;
-        var sectionTop = galleryDetailSection.getBoundingClientRect().top + window.scrollY - headerHeight;
         renderDetailPage();
-        window.scrollTo({ top: sectionTop, behavior: 'smooth' });
+        scrollToSectionTop(galleryDetailSection);
     }
 });
 
@@ -238,7 +253,7 @@ galleryBackBtn.addEventListener('click', function () {
     if (window.location.hash) {
         history.replaceState(null, '', window.location.pathname);
     }
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    scrollToPageTop();
 });
 
 var resizeTimer;
