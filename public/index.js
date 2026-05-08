@@ -249,9 +249,13 @@ document.getElementById('featuredNext').addEventListener('click', function () {
 fetchFeaturedGallery();
 
 var resizeTimer;
+var lastResizeWidth = window.innerWidth;
 window.addEventListener('resize', function () {
+    if (window.innerWidth === lastResizeWidth) return;
     clearTimeout(resizeTimer);
     resizeTimer = setTimeout(function () {
+        if (window.innerWidth === lastResizeWidth) return;
+        lastResizeWidth = window.innerWidth;
         if (recentAllItems.length > 0) {
             buildRecentRows();
             renderRecentPage();
@@ -260,7 +264,7 @@ window.addEventListener('resize', function () {
             buildFeaturedRows();
             renderFeaturedPage();
         }
-    }, 150);
+    }, 200);
 });
 
 const servicesGrid = document.getElementById('servicesGrid');

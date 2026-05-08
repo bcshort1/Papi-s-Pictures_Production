@@ -439,13 +439,17 @@ resetBtn.addEventListener('click', function () {
 });
 
 var resizeTimer;
+var lastResizeWidth = window.innerWidth;
 window.addEventListener('resize', function () {
+    if (window.innerWidth === lastResizeWidth) return;
     clearTimeout(resizeTimer);
     resizeTimer = setTimeout(function () {
+        if (window.innerWidth === lastResizeWidth) return;
+        lastResizeWidth = window.innerWidth;
         if (currentItems.length > 0) {
             renderResults(currentItems);
         }
-    }, 150);
+    }, 200);
 });
 
 window.addEventListener('hashchange', function () {

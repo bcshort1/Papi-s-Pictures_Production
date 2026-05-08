@@ -257,14 +257,18 @@ galleryBackBtn.addEventListener('click', function () {
 });
 
 var resizeTimer;
+var lastResizeWidth = window.innerWidth;
 window.addEventListener('resize', function () {
+    if (window.innerWidth === lastResizeWidth) return;
     clearTimeout(resizeTimer);
     resizeTimer = setTimeout(function () {
+        if (window.innerWidth === lastResizeWidth) return;
+        lastResizeWidth = window.innerWidth;
         if (currentGallery && detailItems.length > 0) {
             buildDetailRows();
             renderDetailPage();
         }
-    }, 150);
+    }, 200);
 });
 
 window.addEventListener('hashchange', function () {
