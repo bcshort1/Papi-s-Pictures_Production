@@ -45,6 +45,7 @@
         var onItemClick = options.onItemClick || function () {};
         var availableHeight = options.availableHeight || 0;
         var emptyHtml = options.emptyHtml || '<p class="loading" style="width:100%;text-align:center;">No pictures available right now.</p>';
+        var showCaptions = !!options.showCaptions;
 
         gridElement.innerHTML = '';
         if (rows.length === 0) {
@@ -94,11 +95,24 @@
 
                 var itemDiv = document.createElement('div');
                 itemDiv.className = 'gallery-item';
+
+                var itemHost = itemDiv;
+                if (showCaptions) {
+                    itemHost = document.createElement('div');
+                    itemHost.className = 'gallery-item-wrapper';
+                }
+
                 if (!isMobile) {
-                    itemDiv.style.width = itemWidth + 'px';
-                    itemDiv.style.height = rowHeight + 'px';
-                    if (!isCapped) itemDiv.style.flexGrow = entry.aspectRatio;
-                    itemDiv.style.flexBasis = itemWidth + 'px';
+                    itemHost.style.width = itemWidth + 'px';
+                    if (!isCapped) itemHost.style.flexGrow = entry.aspectRatio;
+                    itemHost.style.flexBasis = itemWidth + 'px';
+                    if (showCaptions) {
+                        itemDiv.style.width = '100%';
+                        itemDiv.style.height = rowHeight + 'px';
+                        itemDiv.style.flexShrink = '0';
+                    } else {
+                        itemHost.style.height = rowHeight + 'px';
+                    }
                 }
 
                 if (picture.mediaType === 'video') {
@@ -126,7 +140,17 @@
                     itemDiv.appendChild(image);
                 }
 
-                rowDiv.appendChild(itemDiv);
+                if (showCaptions) {
+                    itemHost.appendChild(itemDiv);
+                    var caption = document.createElement('div');
+                    caption.className = 'gallery-item-caption';
+                    caption.textContent = picture.title || '';
+                    caption.title = picture.title || '';
+                    itemHost.appendChild(caption);
+                    rowDiv.appendChild(itemHost);
+                } else {
+                    rowDiv.appendChild(itemDiv);
+                }
             }
             gridElement.appendChild(rowDiv);
         }

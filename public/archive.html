@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Archive - Papi's Pictures</title>
+    <link rel="shortcut icon" href="/assets/logos_and_thumbnails/logo-137x139.png" type="image/x-icon">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&family=Raleway:wght@300;400;500;600;700&display=swap">
+    <link rel="stylesheet" href="/index.css">
+    <link rel="stylesheet" href="/archive.css">
+</head>
+
+<body>
+    <div class="page-grid">
+
+        <header class="site-header">
+            <nav class="nav-container">
+                <a href="/" class="logo">
+                    <img src="/assets/logos_and_thumbnails/logo-137x139.png" alt="Papi's Pictures Logo">
+                </a>
+                <div class="hamburger" id="hamburger" role="button" tabindex="0" aria-label="Toggle menu">
+                    <span></span><span></span><span></span>
+                </div>
+                <ul class="nav-links" id="navLinks">
+                    <li><a href="/">Home</a></li>
+                    <li><a href="/galleries">Galleries</a></li>
+                    <li><a href="/archive" class="active">Archive</a></li>
+                    <li><a href="/#gallery">Recent</a></li>
+                    <li><a href="/#featuredGallery">Featured</a></li>
+                    <li><a href="/#whatsnew">What's New</a></li>
+                    <li><a href="/#about">About</a></li>
+                    <li><a href="/#services">Services &amp; Licensing</a></li>
+                    <li><a href="/login">Sign In</a></li>
+                    <li><a href="/admin" class="admin-link">Admin</a></li>
+                </ul>
+            </nav>
+        </header>
+
+        <main class="site-main">
+
+            <section class="archive-hero">
+                <div class="archive-hero-content">
+                    <h1>Archive</h1>
+                    <p>Search, filter, and sort the entire Papi's Pictures media collection. Use the controls on the
+                        left to narrow the view, then click any tile for the full image and details.</p>
+                </div>
+            </section>
+
+            <section class="archive-section">
+                <div class="archive-layout">
+
+                    <aside class="archive-sidebar" aria-label="Search and filter controls">
+
+                        <div class="sidebar-card">
+                            <label for="archiveSearch" class="sidebar-label">Search</label>
+                            <input type="search" id="archiveSearch" placeholder="Title, tag, location..."
+                                autocomplete="off">
+                        </div>
+
+                        <div class="sidebar-card">
+                            <label for="archiveSort" class="sidebar-label">Sort by</label>
+                            <select id="archiveSort">
+                                <option value="newest">Newest captured first</option>
+                                <option value="oldest">Oldest captured first</option>
+                                <option value="recent">Recently added</option>
+                                <option value="title-az">Title A-Z</option>
+                                <option value="title-za">Title Z-A</option>
+                                <option value="random">Random / Shuffle</option>
+                            </select>
+                        </div>
+
+                        <div class="sidebar-card sidebar-filters">
+                            <span class="sidebar-label">Filters</span>
+
+                            <details open class="filter-group">
+                                <summary>Media Type</summary>
+                                <div class="filter-body">
+                                    <label class="filter-radio"><input type="radio" name="mediaType" value="all"
+                                            checked> All</label>
+                                    <label class="filter-radio"><input type="radio" name="mediaType" value="photo">
+                                        Photos</label>
+                                    <label class="filter-radio"><input type="radio" name="mediaType" value="video">
+                                        Videos</label>
+                                </div>
+                            </details>
+
+                            <details class="filter-group">
+                                <summary>Tags</summary>
+                                <div class="filter-body" id="tagList">
+                                    <p class="filter-empty">Loading tags...</p>
+                                </div>
+                            </details>
+
+                            <details class="filter-group">
+                                <summary>Capture Date</summary>
+                                <div class="filter-body">
+                                    <label class="filter-field">
+                                        <span>From</span>
+                                        <input type="date" id="dateFrom">
+                                    </label>
+                                    <label class="filter-field">
+                                        <span>To</span>
+                                        <input type="date" id="dateTo">
+                                    </label>
+                                </div>
+                            </details>
+
+                            <details class="filter-group">
+                                <summary>Location</summary>
+                                <div class="filter-body">
+                                    <label class="filter-field">
+                                        <span>City</span>
+                                        <select id="cityFilter"><option value="">Any</option></select>
+                                    </label>
+                                    <label class="filter-field">
+                                        <span>State / Region</span>
+                                        <select id="stateFilter"><option value="">Any</option></select>
+                                    </label>
+                                    <label class="filter-field">
+                                        <span>Country</span>
+                                        <select id="countryFilter"><option value="">Any</option></select>
+                                    </label>
+                                </div>
+                            </details>
+
+                            <details class="filter-group">
+                                <summary>Camera</summary>
+                                <div class="filter-body">
+                                    <label class="filter-field">
+                                        <span>Model</span>
+                                        <select id="cameraFilter"><option value="">Any</option></select>
+                                    </label>
+                                </div>
+                            </details>
+
+                            <details class="filter-group">
+                                <summary>Gallery</summary>
+                                <div class="filter-body">
+                                    <label class="filter-field">
+                                        <span>Member of</span>
+                                        <select id="galleryFilter"><option value="">Any</option></select>
+                                    </label>
+                                </div>
+                            </details>
+
+                            <button type="button" id="resetFilters" class="reset-btn">Reset all filters</button>
+                        </div>
+
+                    </aside>
+
+                    <div class="archive-main">
+                        <div class="archive-results-meta" id="archiveMeta" aria-live="polite"></div>
+                        <div class="gallery-grid" id="archiveGrid">
+                            <p class="loading" style="grid-column:1/-1;">Loading archive...</p>
+                        </div>
+                        <div class="pagination" id="archivePagination" style="display:none;">
+                            <button class="pagination-btn" id="archivePrev" aria-label="Previous page">&#10094;
+                                Previous</button>
+                            <span class="pagination-info" id="archivePageInfo"></span>
+                            <button class="pagination-btn" id="archiveNext" aria-label="Next page">Next
+                                &#10095;</button>
+                        </div>
+                        <div class="archive-shuffle" id="archiveShuffle" style="display:none;">
+                            <button class="pagination-btn" id="archiveReshuffle">Show me different</button>
+                        </div>
+                    </div>
+
+                </div>
+            </section>
+
+        </main>
+
+        <footer class="site-footer">
+            <div class="footer-content">
+                <p>&copy; Copyright 2026 Papi's Pictures - All Rights Reserved</p>
+                <ul class="footer-links">
+                    <li><a
+                            href="https://www.instagram.com/papis_pictures?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==">Instagram</a>
+                    </li>
+                    <li><a href="https://www.facebook.com/profile.php?id=61586298303041">Facebook</a></li>
+                </ul>
+            </div>
+        </footer>
+
+    </div>
+    <script src="/justified.js" defer></script>
+    <script src="/lightbox.js" defer></script>
+    <script src="/archive.js" defer></script>
+</body>
+
+</html>

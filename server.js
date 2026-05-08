@@ -13,6 +13,7 @@ const mediaRoutes = require('./backend/routes/mediaRoutes');
 const servicesRoutes = require('./backend/routes/servicesRoutes');
 const whatsNewRoutes = require('./backend/routes/whatsNewRoutes');
 const galleriesRoutes = require('./backend/routes/galleriesRoutes');
+const archiveRoutes = require('./backend/routes/archiveRoutes');
 
 const PORT = process.env.PORT || 3000;
 const JWT_SECRET = process.env.JWT_SECRET || 'papis_pictures_jwt_secret';
@@ -39,6 +40,10 @@ app.get('/vendor/Sortable.min.js', function (req, res) {
 
 app.get('/galleries', function (req, res) {
     res.sendFile(path.join(__dirname, 'public', 'galleries.html'));
+});
+
+app.get('/archive', function (req, res) {
+    res.sendFile(path.join(__dirname, 'public', 'archive.html'));
 });
 
 app.get('/login', function (req, res) {
@@ -97,6 +102,7 @@ app.use('/api/media', mediaRoutes);
 app.use('/api/services', servicesRoutes);
 app.use('/api/whats-new', whatsNewRoutes);
 app.use('/api/galleries', galleriesRoutes);
+app.use('/api/archive', archiveRoutes);
 
 const requireAuth = require('./backend/middleware/requireAuth');
 const Media = require('./backend/models/Media');
