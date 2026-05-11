@@ -328,3 +328,16 @@
         margin-top: 0.3rem;
     }
 }
+
+/* ---------- Mobile / tablet polish (additive) ---------- */
+
+@media (max-width: 768px) {
+    .sidebar-card input[type="search"],
+    .sidebar-card input[type="date"],
+    .sidebar-card select,
+    .filter-field input,
+    .filter-field select {
+        font-size: 16px;
+    }
+}
+

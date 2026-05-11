@@ -2,8 +2,21 @@
 
     var els = {};
     var currentItem = null;
+    var savedScrollY = 0;
 
     function getEl(id) { return document.getElementById(id); }
+
+    function lockBodyScroll() {
+        savedScrollY = window.scrollY || window.pageYOffset || 0;
+        document.body.style.top = '-' + savedScrollY + 'px';
+        document.body.classList.add('drawer-open');
+    }
+
+    function unlockBodyScroll() {
+        document.body.classList.remove('drawer-open');
+        document.body.style.top = '';
+        window.scrollTo(0, savedScrollY);
+    }
 
     function gatherEls() {
         els.overlay = getEl('mediaDrawer');
@@ -372,7 +385,7 @@
         buildFilesTab(item);
 
         els.overlay.style.display = 'flex';
-        document.body.style.overflow = 'hidden';
+        lockBodyScroll();
     }
 
     function close() {
@@ -383,7 +396,7 @@
             video.removeAttribute('src');
         }
         els.overlay.style.display = 'none';
-        document.body.style.overflow = '';
+        unlockBodyScroll();
         currentItem = null;
     }
 
