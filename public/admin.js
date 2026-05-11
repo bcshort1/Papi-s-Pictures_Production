@@ -621,8 +621,10 @@ function renderManageAvailable() {
         if (!query) return true;
         var title = (m.title || '').toLowerCase();
         var fileName = (m.fileName || '').toLowerCase();
+        var ogFileName = (m.ogFileName || '').toLowerCase();
         var tags = (m.tags || []).join(' ').toLowerCase();
-        return title.indexOf(query) !== -1 || fileName.indexOf(query) !== -1 || tags.indexOf(query) !== -1;
+        return title.indexOf(query) !== -1 || fileName.indexOf(query) !== -1 ||
+            ogFileName.indexOf(query) !== -1 || tags.indexOf(query) !== -1;
     });
     if (filtered.length === 0) {
         list.innerHTML = '<p class="loading-text">' + (query ? 'No media matches your filter.' : 'All media is in this gallery.') + '</p>';

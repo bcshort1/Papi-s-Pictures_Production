@@ -22,7 +22,8 @@ function buildFilter(query) {
                 { 'location.state': rx },
                 { 'location.country': rx },
                 { fileName: rx },
-                { ogFileName: rx }
+                { ogFileName: rx },
+                { fullResolutionLogolessPath: rx }
             ];
         }
     }
