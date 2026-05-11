@@ -23,7 +23,7 @@ const getPublicGalleries = asyncHandler(async function (req, res) {
     const slugs = galleries.map(function (g) { return g.slug; });
     const memberAgg = await Media.aggregate([
         { $match: { display: true, 'galleries.gallerySlug': { $in: slugs } } },
-        { $sort: { 'galleries.galleryPosition': 1, capturedAt: -1 } },
+        { $sort: { 'galleries.galleryPosition': 1, capturedAt: -1, _id: -1 } },
         { $unwind: '$galleries' },
         { $match: { 'galleries.gallerySlug': { $in: slugs } } },
         { $group: {

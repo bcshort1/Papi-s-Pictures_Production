@@ -9,7 +9,7 @@ const FEATURED_GALLERY_SLUG = 'featured';
 const getPublicData = asyncHandler(async function (req, res) {
     const [services, media, whatsNew] = await Promise.all([
         LicensingAndService.find({ display: true, active: true }).sort({ sortOrder: 1 }).lean(),
-        Media.find({ display: true, showInRecent: true }).sort({ capturedAt: -1 }).limit(30).lean(),
+        Media.find({ display: true, showInRecent: true }).sort({ capturedAt: -1, ingestedAt: -1, _id: -1 }).limit(30).lean(),
         WhatsNew.find({ display: true }).sort({ sortOrder: 1 }).lean()
     ]);
     res.json({
@@ -20,7 +20,7 @@ const getPublicData = asyncHandler(async function (req, res) {
 });
 
 const getRecentPictures = asyncHandler(async function (req, res) {
-    const documents = await Media.find({ display: true, showInRecent: true }).sort({ capturedAt: -1 }).limit(30).lean();
+    const documents = await Media.find({ display: true, showInRecent: true }).sort({ capturedAt: -1, ingestedAt: -1, _id: -1 }).limit(30).lean();
     res.json(documents.map(toRecentPicture));
 });
 

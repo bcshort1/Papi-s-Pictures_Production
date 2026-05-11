@@ -4,7 +4,7 @@ const path = require('path');
 const sharp = require('sharp');
 const crypto = require('crypto');
 const Media = require('../models/Media');
-const { toSlug, toFileNameBase, buildMediaFileNames, renameFileIfExists, resolveMediaPath, getSeasonTag, getDroneTag } = require('../utils/helpers');
+const { toSlug, toFileNameBase, toFileTimestamp, buildMediaFileNames, renameFileIfExists, resolveMediaPath, getSeasonTag, getDroneTag } = require('../utils/helpers');
 const {
     PHOTOS_FULL_RES_DIR,
     VIDEOS_FULL_RES_DIR,
@@ -22,7 +22,7 @@ const {
 } = require('../services/mediaService');
 
 const getAllMedia = asyncHandler(async function (req, res) {
-    const items = await Media.find({}).sort({ capturedAt: -1 }).lean();
+    const items = await Media.find({}).sort({ capturedAt: -1, ingestedAt: -1, _id: -1 }).lean();
     res.json(items);
 });
 
@@ -268,6 +268,85 @@ const uploadMedia = asyncHandler(async function (req, res) {
     res.end(JSON.stringify(results));
 });
 
+/** First basename under directory that refers to an existing file (checks candidates in order). */
+function firstExistingBasename(candidateValues, directory) {
+    if (!directory || !candidateValues || candidateValues.length === 0) return null;
+    const seen = {};
+    for (let i = 0; i < candidateValues.length; i++) {
+        const v = candidateValues[i];
+        if (v === null || v === undefined) continue;
+        const base = path.basename(String(v));
+        if (!base || seen[base]) continue;
+        seen[base] = true;
+        const abs = path.join(directory, base);
+        try {
+            if (fs.existsSync(abs)) return base;
+        } catch (e) { /* ignore */ }
+    }
+    return null;
+}
+
+function siblingNameFromOgBasename(ogBase, role) {
+    const m = String(ogBase || '').match(/^(.+)_OG(\.[^.]+)$/i);
+    if (!m) return null;
+    const prefix = m[1];
+    const ext = m[2];
+    if (role === 'display') return prefix + '_Display' + ext;
+    if (role === 'thumb') return prefix + '_Thumb.jpg';
+    return null;
+}
+
+function findOgFileByCapturedTimestamp(directory, capturedAt, isVideo) {
+    if (!directory || !capturedAt) return null;
+    const ts = toFileTimestamp(capturedAt);
+    if (!ts || ts === 'nodate') return null;
+    try {
+        const wantsMp4 = isVideo === true;
+        const matching = fs.readdirSync(directory).filter(function (fn) {
+            if (!fn.includes(ts)) return false;
+            const low = fn.toLowerCase();
+            return wantsMp4 ? low.endsWith('_og.mp4') : low.endsWith('_og.png');
+        });
+        if (matching.length === 0) return null;
+        if (matching.length === 1) return matching[0];
+        matching.sort(function (a, b) { return a.localeCompare(b); });
+        const preferred = matching.filter(function (fn) { return !/^DJI_/i.test(fn); });
+        if (preferred.length > 0) return preferred.sort(function (a, b) { return a.localeCompare(b); })[0];
+        return matching[0];
+    } catch (e) {
+        return null;
+    }
+}
+
+/**
+ * DB filename may point at a missing OG while disk still holds a sibling or timestamp-matching file set.
+ */
+function reconcileMediaPathsOnDisk(existing) {
+    const isVideo = existing.mediaType === 'video';
+    const fullResDir = isVideo ? VIDEOS_FULL_RES_DIR : PHOTOS_FULL_RES_DIR;
+    const fullNameStored = existing.fullResolutionLogolessPath ? path.basename(existing.fullResolutionLogolessPath) : '';
+    const storedExists = !!(fullNameStored && fs.existsSync(path.join(fullResDir, fullNameStored)));
+    if (storedExists) return null;
+
+    let altOg = firstExistingBasename([existing.fileName, existing.fullResolutionLogolessPath], fullResDir);
+    if (!altOg) altOg = findOgFileByCapturedTimestamp(fullResDir, existing.capturedAt, isVideo);
+    if (!altOg) return null;
+
+    const patch = {
+        fullResolutionLogolessPath: altOg,
+        fileName: altOg
+    };
+    const dispGuess = siblingNameFromOgBasename(altOg, 'display');
+    const thumbGuess = siblingNameFromOgBasename(altOg, 'thumb');
+    if (dispGuess && fs.existsSync(path.join(MEDIA_DISPLAY_DIR, dispGuess))) {
+        patch.displayResolutionPath = dispGuess;
+    }
+    if (thumbGuess && fs.existsSync(path.join(THUMBNAILS_DIR, thumbGuess))) {
+        patch.thumbnailPath = thumbGuess;
+    }
+    return patch;
+}
+
 const updateMedia = asyncHandler(async function (req, res) {
     const id = req.params.id;
     const body = req.body;
@@ -275,7 +354,15 @@ const updateMedia = asyncHandler(async function (req, res) {
 
     if (body.title !== undefined) {
         update.title = String(body.title);
-        update.slug = toSlug(body.title);
+        const slugCandidate = toSlug(body.title);
+        const conflicting = await Media.findOne({ slug: slugCandidate, _id: { $ne: id } }).select('_id').lean();
+        if (conflicting) {
+            res.status(409).json({
+                error: 'Another photo or video already uses this title-derived URL slug. Choose a distinct title.'
+            });
+            return;
+        }
+        update.slug = slugCandidate;
     }
     if (body.description !== undefined) update.description = String(body.description);
     if (body.alt !== undefined) update.alt = String(body.alt);
@@ -302,31 +389,62 @@ const updateMedia = asyncHandler(async function (req, res) {
 
     const existing = await Media.findById(id).lean();
     if (existing) {
-        const newTitle = update.title !== undefined ? update.title : existing.title;
-        const newCapturedAt = update.capturedAt !== undefined ? update.capturedAt : existing.capturedAt;
+        const pathRepair = reconcileMediaPathsOnDisk(existing);
+        if (pathRepair) Object.assign(update, pathRepair);
+
+        const working = pathRepair ? Object.assign({}, existing, pathRepair) : existing;
+
+        const newTitle = update.title !== undefined ? update.title : working.title;
+        const newCapturedAt = update.capturedAt !== undefined ? update.capturedAt : working.capturedAt;
         const titleChanged = update.title !== undefined && update.title !== existing.title;
         const dateChanged = update.capturedAt !== undefined && String(update.capturedAt) !== String(existing.capturedAt);
 
         if (titleChanged || dateChanged) {
-            const newNames = buildMediaFileNames(newTitle, newCapturedAt, existing.mediaType);
-            const isVideo = existing.mediaType === 'video';
+            const newNames = buildMediaFileNames(newTitle, newCapturedAt, working.mediaType);
+            const isVideo = working.mediaType === 'video';
             const fullResDir = isVideo ? VIDEOS_FULL_RES_DIR : PHOTOS_FULL_RES_DIR;
 
-            const curFullResAbs = resolveMediaPath(existing.fullResolutionLogolessPath, fullResDir);
-            const curDisplayAbs = resolveMediaPath(existing.displayResolutionPath, MEDIA_DISPLAY_DIR);
-            const curThumbAbs = resolveMediaPath(existing.thumbnailPath, THUMBNAILS_DIR);
+            const curFullResAbs = resolveMediaPath(working.fullResolutionLogolessPath, fullResDir);
+            const curDisplayAbs = resolveMediaPath(working.displayResolutionPath, MEDIA_DISPLAY_DIR);
+            const curThumbAbs = resolveMediaPath(working.thumbnailPath, THUMBNAILS_DIR);
 
             const newFullResAbs = path.join(fullResDir, newNames.ogName);
             const newDisplayAbs = path.join(MEDIA_DISPLAY_DIR, newNames.displayName);
             const newThumbAbs = path.join(THUMBNAILS_DIR, newNames.thumbName);
 
-            const fullResResult = renameFileIfExists(curFullResAbs, newFullResAbs);
+            let fullResResult = renameFileIfExists(curFullResAbs, newFullResAbs);
+            if (!fullResResult) {
+                const altSrcBase = firstExistingBasename([working.fullResolutionLogolessPath, working.fileName], fullResDir);
+                if (altSrcBase) {
+                    fullResResult = renameFileIfExists(path.join(fullResDir, altSrcBase), newFullResAbs);
+                }
+            }
             if (fullResResult) update.fullResolutionLogolessPath = path.basename(fullResResult);
 
-            const displayResult = renameFileIfExists(curDisplayAbs, newDisplayAbs);
+            let displayResult = renameFileIfExists(curDisplayAbs, newDisplayAbs);
+            if (!displayResult) {
+                const ogBaseResolved = update.fullResolutionLogolessPath
+                    ? update.fullResolutionLogolessPath
+                    : path.basename(String(working.fullResolutionLogolessPath || ''));
+                const fromSibling = siblingNameFromOgBasename(ogBaseResolved, 'display');
+                const altDispBase = firstExistingBasename([working.displayResolutionPath, fromSibling], MEDIA_DISPLAY_DIR);
+                if (altDispBase) {
+                    displayResult = renameFileIfExists(path.join(MEDIA_DISPLAY_DIR, altDispBase), newDisplayAbs);
+                }
+            }
             if (displayResult) update.displayResolutionPath = path.basename(displayResult);
 
-            const thumbResult = renameFileIfExists(curThumbAbs, newThumbAbs);
+            let thumbResult = renameFileIfExists(curThumbAbs, newThumbAbs);
+            if (!thumbResult) {
+                const ogBaseResolved = update.fullResolutionLogolessPath
+                    ? update.fullResolutionLogolessPath
+                    : path.basename(String(working.fullResolutionLogolessPath || ''));
+                const fromSibling = siblingNameFromOgBasename(ogBaseResolved, 'thumb');
+                const altThumbBase = firstExistingBasename([working.thumbnailPath, fromSibling], THUMBNAILS_DIR);
+                if (altThumbBase) {
+                    thumbResult = renameFileIfExists(path.join(THUMBNAILS_DIR, altThumbBase), newThumbAbs);
+                }
+            }
             if (thumbResult) update.thumbnailPath = path.basename(thumbResult);
 
             update.fileName = newNames.ogName;

@@ -70,13 +70,19 @@ function buildFilter(query) {
 }
 
 function getSortSpec(sort) {
+    const stableNewest = { capturedAt: -1, ingestedAt: -1, _id: -1 };
     switch (sort) {
-        case 'oldest': return { capturedAt: 1 };
-        case 'recent': return { ingestedAt: -1, createdAt: -1 };
-        case 'title-az': return { title: 1 };
-        case 'title-za': return { title: -1 };
+        case 'oldest':
+            return { capturedAt: 1, ingestedAt: 1, _id: 1 };
+        case 'recent':
+            return { ingestedAt: -1, createdAt: -1, _id: -1 };
+        case 'title-az':
+            return { title: 1, _id: 1 };
+        case 'title-za':
+            return { title: -1, _id: -1 };
         case 'newest':
-        default: return { capturedAt: -1 };
+        default:
+            return stableNewest;
     }
 }
 
