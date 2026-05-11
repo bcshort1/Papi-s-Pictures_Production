@@ -167,7 +167,8 @@
         var rows = [];
         rows.push(['Slug', item.slug]);
         rows.push(['Media Type', item.mediaType]);
-        rows.push(['File name', item.fullResolutionLogolessPath || item.fileName]);
+        rows.push(['Original upload filename', item.ogFileName || 'Not recorded for this item']);
+        rows.push(['Full-resolution file (on disk)', item.fullResolutionLogolessPath || item.fileName]);
         rows.push(['Display path', item.displayResolutionPath]);
         rows.push(['Thumbnail path', item.thumbnailPath]);
         rows.push(['Captured At', item.capturedAt]);

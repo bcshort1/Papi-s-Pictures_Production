@@ -8,6 +8,7 @@ const mediaSchema = new mongoose.Schema({
   description: String,
   alt: String,
   fileName: String,
+  ogFileName: String,
   fullResolutionLogolessPath: String,
   displayResolutionPath: String,
   thumbnailPath: String,

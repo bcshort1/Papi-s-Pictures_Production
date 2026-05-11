@@ -21,7 +21,8 @@ function buildFilter(query) {
                 { 'location.city': rx },
                 { 'location.state': rx },
                 { 'location.country': rx },
-                { fileName: rx }
+                { fileName: rx },
+                { ogFileName: rx }
             ];
         }
     }

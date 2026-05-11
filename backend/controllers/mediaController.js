@@ -178,6 +178,7 @@ const uploadMedia = asyncHandler(async function (req, res) {
                 description: '',
                 alt: '',
                 fileName: originalName,
+                ogFileName: originalName,
                 fullResolutionLogolessPath: fileNames.ogName,
                 displayResolutionPath: fileNames.displayName,
                 thumbnailPath: fileNames.thumbName,
@@ -241,6 +242,7 @@ const uploadMedia = asyncHandler(async function (req, res) {
                 description: '',
                 alt: '',
                 fileName: originalName,
+                ogFileName: originalName,
                 fullResolutionLogolessPath: fileNames.ogName,
                 displayResolutionPath: fileNames.displayName,
                 thumbnailPath: fileNames.thumbName,
@@ -662,6 +664,7 @@ const finalizeUpload = asyncHandler(async function (req, res) {
             slug: toSlug(nameWithoutExt),
             mediaType: 'photo', title: title, description: '', alt: '',
             fileName: originalName,
+            ogFileName: originalName,
             fullResolutionLogolessPath: fileNames.ogName,
             displayResolutionPath: fileNames.displayName,
             thumbnailPath: fileNames.thumbName,
@@ -719,6 +722,7 @@ const finalizeUpload = asyncHandler(async function (req, res) {
             slug: toSlug(nameWithoutExt),
             mediaType: 'video', title: title, description: '', alt: '',
             fileName: originalName,
+            ogFileName: originalName,
             fullResolutionLogolessPath: fileNames.ogName,
             displayResolutionPath: fileNames.displayName,
             thumbnailPath: fileNames.thumbName,
@@ -797,7 +801,8 @@ const replaceFullRes = asyncHandler(async function (req, res) {
         fullResolutionLogolessPath: fileNames.ogName,
         displayResolutionPath: fileNames.displayName,
         thumbnailPath: fileNames.thumbName,
-        fileName: fileNames.ogName
+        fileName: fileNames.ogName,
+        ogFileName: file.filename
     };
 
     if (isVideo) {
