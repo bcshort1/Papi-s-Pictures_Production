@@ -1,5 +1,3 @@
-require('@dotenvx/dotenvx').config({ quiet: true });
-
 const mongoose = require('mongoose');
 const Media = require('../backend/models/Media');
 const Gallery = require('../backend/models/Gallery');
