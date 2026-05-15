@@ -10,6 +10,7 @@
     "backup": "dotenvx run -- node scripts/autoBackup.js",
     "migrate-galleries": "dotenvx run -- node scripts/migrateGalleries.js",
     "migrate-featured": "dotenvx run -- node scripts/migrateFeaturedToGallery.js",
+    "migrate-media-commerce": "dotenvx run -- node scripts/migrateMediaCommerceFlags.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {

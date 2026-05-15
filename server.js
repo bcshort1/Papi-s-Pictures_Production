@@ -112,6 +112,13 @@ const WhatsNew = require('./backend/models/WhatsNew');
 const LicensingAndService = require('./backend/models/LicensingAndService');
 const Gallery = require('./backend/models/Gallery');
 const User = require('./backend/models/User');
+require('./backend/models/CatalogItem');
+require('./backend/models/BuyerCustomer');
+require('./backend/models/CommerceOrder');
+require('./backend/models/OrderLine');
+require('./backend/models/License');
+require('./backend/models/WebhookEvent');
+require('./backend/models/RefundProposal');
 
 app.get('/api/schema', requireAuth, async function (req, res) {
     try {

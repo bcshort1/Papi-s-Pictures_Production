@@ -1270,6 +1270,13 @@ async function editMedia(item) {
     modalFields.appendChild(createField('Visible', 'display', 'checkbox', item.display, false));
     modalFields.appendChild(createField('Show in Recent', 'showInRecent', 'checkbox', item.showInRecent, false));
 
+    var commerceLabel = document.createElement('label');
+    commerceLabel.textContent = 'Commerce';
+    commerceLabel.className = 'section-label';
+    modalFields.appendChild(commerceLabel);
+    modalFields.appendChild(createField('Available for physical print purchase', 'availableForSale', 'checkbox', !!item.availableForSale, false));
+    modalFields.appendChild(createField('Available for digital license (download)', 'availableForLicense', 'checkbox', !!item.availableForLicense, false));
+
     openModal('Edit Media — ' + escapeHtml(item.title || 'Untitled'));
 }
 
@@ -1679,6 +1686,25 @@ function runBatchEntry(uploadResults) {
 
             modalFields.appendChild(createField('Visible', 'display', 'checkbox', saved ? saved.display : true, false));
             modalFields.appendChild(createField('Show in Recent', 'showInRecent', 'checkbox', saved ? saved.showInRecent : true, false));
+
+            var commerceLabelBatch = document.createElement('label');
+            commerceLabelBatch.textContent = 'Commerce';
+            commerceLabelBatch.className = 'section-label';
+            modalFields.appendChild(commerceLabelBatch);
+            modalFields.appendChild(createField(
+                'Available for physical print purchase',
+                'availableForSale',
+                'checkbox',
+                saved ? !!saved.availableForSale : !!doc.availableForSale,
+                false
+            ));
+            modalFields.appendChild(createField(
+                'Available for digital license (download)',
+                'availableForLicense',
+                'checkbox',
+                saved ? !!saved.availableForLicense : !!doc.availableForLicense,
+                false
+            ));
 
             var backBtn = document.getElementById('modalBackBtn');
             if (backBtn) {

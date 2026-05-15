@@ -310,6 +310,8 @@
             '<div class="card-meta">' +
             '<span class="meta-status ' + (item.display ? 'active' : 'inactive') + '">' + (item.display ? 'Visible' : 'Hidden') + '</span>' +
             (item.showInRecent ? '<span class="meta-status active">Recent</span>' : '') +
+            (item.availableForSale ? '<span class="meta-status active" title="Physical print purchase">Print</span>' : '') +
+            (item.availableForLicense ? '<span class="meta-status active" title="Digital license">License</span>' : '') +
             '</div>' +
             (galleryBadges ? '<div class="media-card-galleries">' + galleryBadges + '</div>' : '') +
             (tagBadges ? '<div class="media-card-tags">' + tagBadges + '</div>' : '') +

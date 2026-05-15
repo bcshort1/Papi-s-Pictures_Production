@@ -376,6 +376,8 @@ const updateMedia = asyncHandler(async function (req, res) {
     if (body.galleries !== undefined) update.galleries = Array.isArray(body.galleries) ? body.galleries : [];
     if (body.display !== undefined) update.display = Boolean(body.display);
     if (body.showInRecent !== undefined) update.showInRecent = Boolean(body.showInRecent);
+    if (body.availableForSale !== undefined) update.availableForSale = Boolean(body.availableForSale);
+    if (body.availableForLicense !== undefined) update.availableForLicense = Boolean(body.availableForLicense);
     if (body.location !== undefined) {
         update.location = {
             city: String(body.location.city || ''),

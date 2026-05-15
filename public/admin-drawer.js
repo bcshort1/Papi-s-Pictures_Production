@@ -145,6 +145,13 @@
 
         els.detailsTab.appendChild(window.createField('Visible', 'd_display', 'checkbox', item.display, false));
         els.detailsTab.appendChild(window.createField('Show in Recent', 'd_showInRecent', 'checkbox', item.showInRecent, false));
+
+        var commerceLabel = document.createElement('label');
+        commerceLabel.textContent = 'Commerce';
+        commerceLabel.className = 'section-label';
+        els.detailsTab.appendChild(commerceLabel);
+        els.detailsTab.appendChild(window.createField('Available for physical print purchase', 'd_availableForSale', 'checkbox', !!item.availableForSale, false));
+        els.detailsTab.appendChild(window.createField('Available for digital license (download)', 'd_availableForLicense', 'checkbox', !!item.availableForLicense, false));
     }
 
     function renameInputIds(container, prefix) {
@@ -438,6 +445,8 @@
 
         body.display = !!(getEl('field-d_display') && getEl('field-d_display').checked);
         body.showInRecent = !!(getEl('field-d_showInRecent') && getEl('field-d_showInRecent').checked);
+        body.availableForSale = !!(getEl('field-d_availableForSale') && getEl('field-d_availableForSale').checked);
+        body.availableForLicense = !!(getEl('field-d_availableForLicense') && getEl('field-d_availableForLicense').checked);
 
         return body;
     }

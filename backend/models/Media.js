@@ -21,6 +21,8 @@ const mediaSchema = new mongoose.Schema({
   tags: [String],
   display: Boolean,
   showInRecent: Boolean,
+  availableForSale: { type: Boolean, default: false },
+  availableForLicense: { type: Boolean, default: false },
   capturedAt: Date,
   ingestedAt: Date,
   location: {
